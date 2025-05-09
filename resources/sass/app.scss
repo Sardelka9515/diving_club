@@ -1,0 +1,18 @@
+// resources/sass/app.scss
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+// 自定義樣式
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.footer {
+    margin-top: 3rem;
+    padding: 2rem 0;
+    background-color: #f8f9fa;
+}

@@ -1,0 +1,13 @@
+/* resources/css/app.css */
+body {
+    font-family: 'Figtree', sans-serif;
+    background-color: #f8fafc;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* 其他基本樣式 */
