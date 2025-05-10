@@ -60,6 +60,10 @@ class User extends Authenticatable
 
     public function hasRole($roleSlug)
     {
+        if (is_array($roleSlug)) {
+            return $this->roles()->whereIn('slug', $roleSlug)->exists();
+        }
+        
         return $this->roles()->where('slug', $roleSlug)->exists();
     }
 }

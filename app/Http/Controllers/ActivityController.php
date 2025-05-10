@@ -54,20 +54,38 @@ class ActivityController extends Controller
             return back()->with('error', '活動報名人數已滿');
         }
         
-        // 建立報名紀錄
-        $activity->registrations()->create([
-            'user_id' => auth()->id(),
-            'status' => 'pending',
-        ]);
+        try {
+            // 建立報名紀錄
+            $activity->registrations()->create([
+                'user_id' => auth()->id(),
+                'status' => 'pending',
+            ]);
+            
+            return back()->with('success', '報名成功');
+        } catch (\Exception $e) {
+            // 記錄錯誤
+            \Log::error('活動報名失敗: ' . $e->getMessage());
+            return back()->with('error', '報名處理時發生錯誤，請稍後再試');
+        }
         
-        return back()->with('success', '報名成功');
+        
     }
 
     public function unregister(Activity $activity, Request $request)
     {
-        // 刪除報名紀錄
-        $activity->registrations()->where('user_id', auth()->id())->delete();
-        
-        return back()->with('success', '已取消報名');
+        try {
+            // 刪除報名紀錄
+            $deleted = $activity->registrations()->where('user_id', auth()->id())->delete();
+            
+            if ($deleted) {
+                return back()->with('success', '已取消報名');
+            } else {
+                return back()->with('error', '您尚未報名此活動');
+            }
+        } catch (\Exception $e) {
+            // 記錄錯誤
+            \Log::error('取消活動報名失敗: ' . $e->getMessage());
+            return back()->with('error', '取消報名處理時發生錯誤，請稍後再試');
+        }
     }
 }

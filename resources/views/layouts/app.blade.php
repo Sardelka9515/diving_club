@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,68 +18,6 @@
     <!-- 備用 CDN 引入 Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <style>
-        body {
-            font-family: 'Noto Sans TC', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .navbar {
-            background-color: #212529 !important;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-        }
-        
-        .navbar-dark .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.85);
-            font-weight: 500;
-        }
-        
-        .navbar-dark .navbar-nav .nav-link:hover,
-        .navbar-dark .navbar-nav .nav-link:focus {
-            color: #fff;
-        }
-        
-        .navbar-dark .navbar-nav .active > .nav-link,
-        .navbar-dark .navbar-nav .nav-link.active {
-            color: #fff;
-            border-bottom: 2px solid #3490dc;
-        }
-        
-        .wave-icon {
-            display: inline-block;
-            margin-right: 10px;
-        }
-        
-        main {
-            flex: 1;
-        }
-        
-        .footer {
-            background-color: #212529;
-            color: white;
-            padding: 2rem 0;
-            margin-top: auto;
-        }
-        
-        .btn-primary {
-            background-color: #3490dc;
-            border-color: #3490dc;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2779bd;
-            border-color: #2779bd;
-        }
-    </style>
     @stack('styles')
 </head>
 
@@ -117,40 +55,42 @@
                             <a class="nav-link {{ request()->is('register') ? 'active' : '' }}" href="{{ route('register') }}">註冊</a>
                         </li>
                     @else
-                        @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('super'))
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-gear-fill"></i> 系統管理
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                                    <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">儀表板</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.activities.index') }}">活動管理</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('admin.announcements.index') }}">公告管理</a></li>
-                                    @if(auth()->user()->hasRole('super'))
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
-                                        <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
-                                    @endif
-                                </ul>
-                            </li>
-                        @endif
+                        <!-- 管理員選項，暫時對所有登入用戶開放 -->
+                        @if(Auth::check())
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                {{ Auth::user()->name }}
+                            <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-gear-fill"></i> 系統管理
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">儀表板</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.activities.index') }}">活動管理</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.announcements.index') }}">公告管理</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
+                            </ul>
+                        </li>
+                        @endif
+                        
+                        <!-- 用戶下拉選單 -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> {{ Auth::user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">我的儀表板</a></li>
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">個人資料</a></li>
-                                @if(auth()->user()->hasRole('member'))
                                 <li><a class="dropdown-item" href="{{ route('member.activities') }}">我的活動</a></li>
-                                @endif
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <button type="submit" class="dropdown-item">登出</button>
+                                        <button type="submit" class="dropdown-item">
+                                            <i class="bi bi-box-arrow-right"></i> 登出
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
@@ -161,11 +101,27 @@
         </div>
     </nav>
 
-    <main>
-        @yield('content')
+    <main class="py-4">
+        <div class="container">
+            @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+
+            @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show">
+                {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            @endif
+            
+            @yield('content')
+        </div>
     </main>
 
-    <footer class="footer">
+    <footer class="footer bg-dark text-white py-4 mt-5">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
@@ -181,6 +137,26 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 使用 Bootstrap 5 Dropdown API
+            var dropdownElementList = document.querySelectorAll('.dropdown-toggle');
+            dropdownElementList.forEach(function(element) {
+                // 創建一個新的 Dropdown 實例
+                var dropdown = new bootstrap.Dropdown(element, {
+                    autoClose: true
+                });
+                
+                // 確保點擊後可以開啟下拉選單
+                element.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    dropdown.toggle();
+                });
+            });
+            
+            console.log('Bootstrap Dropdown API 初始化，總數量: ' + dropdownElementList.length);
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

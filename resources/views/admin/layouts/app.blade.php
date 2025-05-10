@@ -192,6 +192,20 @@
                 </div>
                 @endif
                 
+                @if(session('warning'))
+                <div class="alert alert-warning alert-dismissible fade show">
+                    {{ session('warning') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+
+                @if(session('info'))
+                <div class="alert alert-info alert-dismissible fade show">
+                    {{ session('info') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                @endif
+                
                 @yield('content')
             </main>
         </div>
@@ -204,14 +218,21 @@
     </footer>
 
     <!-- Bootstrap JS -->
-    <!-- Bootstrap JS 和下拉選單初始化 -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    // 在 resources/views/admin/layouts/app.blade.php 中添加以下 JavaScript 初始化代碼
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 手動初始化所有下拉選單
+            // 初始化所有下拉選單
             var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-            dropdownElementList.forEach(function(element) {
-                new bootstrap.Dropdown(element);
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
+            // 初始化側邊欄的折疊功能
+            var sidebarToggles = [].slice.call(document.querySelectorAll('[data-bs-toggle="collapse"]'));
+            sidebarToggles.map(function (toggle) {
+                return new bootstrap.Collapse(document.querySelector(toggle.getAttribute('data-bs-target')), {
+                    toggle: false
+                });
             });
         });
     </script>
