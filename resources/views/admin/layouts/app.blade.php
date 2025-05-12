@@ -139,40 +139,44 @@
     <div class="container-fluid">
         <div class="row">
             <!-- 側邊欄 -->
+            <!-- 在 resources/views/admin/layouts/app.blade.php 的側邊欄部分 -->
             <div class="col-md-3 col-lg-2 admin-sidebar d-md-block collapse">
                 <div class="pt-3">
                     <div class="list-group list-group-flush">
                         <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
                             <i class="bi bi-speedometer2"></i> 儀表板
                         </a>
+                        
+                        <!-- admin 和 super 可見 -->
+                        @if(auth()->user()->hasRole(['admin', 'super']))
                         <a href="{{ route('admin.activities.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.activities.*') ? 'active' : '' }}">
                             <i class="bi bi-calendar-event"></i> 活動管理
                         </a>
                         <a href="{{ route('admin.announcements.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}">
                             <i class="bi bi-megaphone"></i> 公告管理
                         </a>
-                    </div>
-                    
-                    @if(auth()->user()->hasRole('super'))
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-gear-fill"></i> 系統管理
+                        @endif
+                        
+                        <!-- 超級管理員專用功能 -->
+                        @if(auth()->user()->hasRole('super'))
+                        <hr>
+                        <div class="sidebar-title">
+                            <small class="text-muted px-3">系統管理</small>
+                        </div>
+                        <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                            <i class="bi bi-people"></i> 用戶管理
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
-                            <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">儀表板</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.activities.index') }}">活動管理</a></li>
-                            <li><a class="dropdown-item" href="{{ route('admin.announcements.index') }}">公告管理</a></li>
-                            @if(auth()->user()->hasRole('super'))
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
-                            @endif
-                        </ul>
-                    </li>
-                    @endif
+                        <a href="{{ route('admin.roles.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
+                            <i class="bi bi-shield-check"></i> 角色管理
+                        </a>
+                        <a href="{{ route('admin.permissions.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.permissions.*') ? 'active' : '' }}">
+                            <i class="bi bi-key"></i> 權限管理
+                        </a>
+                        <a href="{{ route('admin.settings.index') }}" class="list-group-item list-group-item-action {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                            <i class="bi bi-gear"></i> 系統設定
+                        </a>
+                        @endif
+                    </div>
                 </div>
             </div>
             

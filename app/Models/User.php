@@ -56,12 +56,41 @@ class User extends Authenticatable
         return $this->hasMany(Announcement::class);
     }
 
+    /**
+     * 檢查使用者是否擁有特定角色
+     */
     public function hasRole($roleSlug)
     {
+        // 如果傳入陣列，檢查是否擁有任一角色
         if (is_array($roleSlug)) {
             return $this->roles()->whereIn('slug', $roleSlug)->exists();
         }
         
+        // 如果傳入字串，檢查單一角色
         return $this->roles()->where('slug', $roleSlug)->exists();
+    }
+
+    /**
+     * 檢查使用者是否為管理員（admin 或 super）
+     */
+    public function isAdmin()
+    {
+        return $this->hasRole(['admin', 'super']);
+    }
+
+    /**
+     * 檢查使用者是否為超級管理員
+     */
+    public function isSuperAdmin()
+    {
+        return $this->hasRole('super');
+    }
+
+    /**
+     * 檢查使用者是否為正式社員
+     */
+    public function isMember()
+    {
+        return $this->hasRole('member');
     }
 }

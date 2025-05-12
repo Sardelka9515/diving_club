@@ -46,6 +46,7 @@
                         <a class="nav-link {{ request()->is('announcements*') ? 'active' : '' }}" href="{{ route('announcements.index') }}">公告</a>
                     </li>
                 </ul>
+                <!-- 導航部分 -->
                 <ul class="navbar-nav ms-auto">
                     @guest
                         <li class="nav-item">
@@ -55,8 +56,8 @@
                             <a class="nav-link {{ request()->is('register') ? 'active' : '' }}" href="{{ route('register') }}">註冊</a>
                         </li>
                     @else
-                        <!-- 管理員選項，暫時對所有登入用戶開放 -->
-                        @if(Auth::check())
+                        <!-- 管理員選項 - 只有 admin 和 super 可見 -->
+                        @if(auth()->user()->hasRole(['admin', 'super']))
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-gear-fill"></i> 系統管理
@@ -66,11 +67,15 @@
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.activities.index') }}">活動管理</a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.announcements.index') }}">公告管理</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
-                                <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
+                                
+                                <!-- 超級管理員專用功能 -->
+                                @if(auth()->user()->hasRole('super'))
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
+                                @endif
                             </ul>
                         </li>
                         @endif
