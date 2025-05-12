@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/Admin/AnnouncementController.php
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -30,6 +29,9 @@ class AnnouncementController extends Controller
             'is_published' => 'boolean',
         ]);
         
+        // 將純文字轉換為 HTML 段落
+        $validatedData['content'] = $this->formatTextToHtml($validatedData['content']);
+        
         $validatedData['is_pinned'] = $request->has('is_pinned');
         $validatedData['is_published'] = $request->has('is_published');
         $validatedData['user_id'] = auth()->id();
@@ -38,6 +40,12 @@ class AnnouncementController extends Controller
         Announcement::create($validatedData);
         
         return redirect()->route('admin.announcements.index')->with('success', '公告已成功創建');
+    }
+    
+    public function show(Announcement $announcement)
+    {
+        $announcement->load('user');
+        return view('admin.announcements.show', compact('announcement'));
     }
     
     public function edit(Announcement $announcement)
@@ -53,6 +61,9 @@ class AnnouncementController extends Controller
             'is_pinned' => 'boolean',
             'is_published' => 'boolean',
         ]);
+        
+        // 將純文字轉換為 HTML 段落
+        $validatedData['content'] = $this->formatTextToHtml($validatedData['content']);
         
         $validatedData['is_pinned'] = $request->has('is_pinned');
         $validatedData['is_published'] = $request->has('is_published');
@@ -70,5 +81,29 @@ class AnnouncementController extends Controller
     {
         $announcement->delete();
         return redirect()->route('admin.announcements.index')->with('success', '公告已成功刪除');
+    }
+    
+    /**
+     * 將純文字轉換為 HTML 段落
+     */
+    private function formatTextToHtml($text)
+    {
+        // 先清除可能存在的 HTML 標籤
+        $text = strip_tags($text);
+        
+        // 將換行符號轉換為段落
+        $paragraphs = explode("\n\n", $text);
+        $html = '';
+        
+        foreach ($paragraphs as $paragraph) {
+            $paragraph = trim($paragraph);
+            if (!empty($paragraph)) {
+                // 處理單個換行符號為 <br>
+                $paragraph = nl2br($paragraph);
+                $html .= '<p>' . $paragraph . '</p>';
+            }
+        }
+        
+        return $html;
     }
 }

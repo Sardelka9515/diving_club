@@ -58,6 +58,9 @@ class ActivityController extends Controller
     
     public function show(Activity $activity)
     {
+        // 載入相關數據
+        $activity->load(['category', 'registrations.user']);
+        
         return view('admin.activities.show', compact('activity'));
     }
     

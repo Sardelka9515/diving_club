@@ -21,26 +21,24 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'phone',
+        'emergency_contact',
+        'emergency_phone',
+        'birth_date',
+        'diving_experience',
+        'diving_certification',
+        'medical_conditions',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array<int, string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'birth_date' => 'date',
     ];
     
     public function roles()

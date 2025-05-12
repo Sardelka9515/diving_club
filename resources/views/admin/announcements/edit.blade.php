@@ -28,7 +28,8 @@
             <div class="mb-3">
                 <label for="content" class="form-label">公告內容 <span class="text-danger">*</span></label>
                 <textarea class="form-control @error('content') is-invalid @enderror" 
-                          id="content" name="content" rows="10" required>{{ old('content', $announcement->content) }}</textarea>
+                          id="content" name="content" rows="10" required>{{ old('content', strip_tags($announcement->content)) }}</textarea>
+                <div class="form-text">請輸入純文字內容，系統會自動處理格式。</div>
                 @error('content')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
