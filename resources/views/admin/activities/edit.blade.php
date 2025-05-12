@@ -30,7 +30,7 @@
                     <div class="mb-3">
                         <label for="description" class="form-label">活動描述 <span class="text-danger">*</span></label>
                         <textarea class="form-control @error('description') is-invalid @enderror" 
-                                  id="description" name="description" rows="3" required>{{ old('description', $activity->description) }}</textarea>
+                                  id="description" name="description" rows="3" placeholder="請輸入活動簡介..." required>{{ old('description', $activity->description) }}</textarea>
                         @error('description')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -39,7 +39,12 @@
                     <div class="mb-3">
                         <label for="content" class="form-label">活動內容 <span class="text-danger">*</span></label>
                         <textarea class="form-control @error('content') is-invalid @enderror" 
-                                  id="content" name="content" rows="8" required>{{ old('content', $activity->content) }}</textarea>
+                                  id="content" name="content" rows="10" placeholder="請輸入詳細內容，可使用換行來分段..." required>{{ old('content', strip_tags($activity->content)) }}</textarea>
+                        <div class="form-text">
+                            提示：使用換行來分段，系統會自動格式化為段落。例如：<br>
+                            - 連續兩個換行會產生段落<br>
+                            - 單個換行會轉為換行顯示
+                        </div>
                         @error('content')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
@@ -55,7 +60,6 @@
                         @error('activity_category')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
-                    </div>
                     </div>
 
                     <div class="mb-3">

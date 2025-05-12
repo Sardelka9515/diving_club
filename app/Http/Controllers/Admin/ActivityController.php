@@ -48,6 +48,9 @@ class ActivityController extends Controller
         $validatedData['activity_category_id'] = $category->id;
         $validatedData['is_published'] = $request->has('is_published');
         
+        // 將純文字內容轉換成 HTML
+        $validatedData['content'] = $this->textToHtml($validatedData['content']);
+        
         // 移除 activity_category，因為我們不需要存儲這個欄位
         unset($validatedData['activity_category']);
         
@@ -96,6 +99,9 @@ class ActivityController extends Controller
         $validatedData['activity_category_id'] = $category->id;
         $validatedData['is_published'] = $request->has('is_published');
         
+        // 將純文字內容轉換成 HTML
+        $validatedData['content'] = $this->textToHtml($validatedData['content']);
+        
         unset($validatedData['activity_category']);
         
         $activity->update($validatedData);
@@ -107,5 +113,32 @@ class ActivityController extends Controller
     {
         $activity->delete();
         return redirect()->route('admin.activities.index')->with('success', '活動已成功刪除');
+    }
+    
+    /**
+     * 將純文字轉換為 HTML
+     */
+    private function textToHtml($text)
+    {
+        // 清理可能存在的 HTML 標籤
+        $text = strip_tags($text);
+        
+        // 將連續兩個換行轉為段落分隔符號
+        $text = preg_replace("/\n\s*\n/", "\n\n", $text);
+        
+        // 分割段落
+        $paragraphs = explode("\n\n", $text);
+        $html = '';
+        
+        foreach ($paragraphs as $paragraph) {
+            $paragraph = trim($paragraph);
+            if (!empty($paragraph)) {
+                // 處理段落內的單個換行符號
+                $paragraph = nl2br($paragraph);
+                $html .= '<p>' . $paragraph . '</p>';
+            }
+        }
+        
+        return $html;
     }
 }
