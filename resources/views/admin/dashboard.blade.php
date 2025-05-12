@@ -1,20 +1,9 @@
-@extends('layouts.app')
+@extends('admin.layouts.app')
 
 @section('content')
-<div class="container py-4">
+<div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>系統儀表板</h1>
-        <div class="dropdown">
-            <button class="btn btn-primary dropdown-toggle" type="button" id="adminMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                系統管理功能
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminMenu">
-                <li><a class="dropdown-item" href="{{ route('admin.users.index') }}">用戶管理</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.roles.index') }}">角色管理</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.permissions.index') }}">權限管理</a></li>
-                <li><a class="dropdown-item" href="{{ route('admin.settings.index') }}">系統設定</a></li>
-            </ul>
-        </div>
     </div>
 
     <div class="row mb-4">
@@ -75,51 +64,51 @@
     <div class="row">
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">管理功能</h5>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">快速操作</h5>
                 </div>
                 <div class="card-body">
                     <div class="row row-cols-1 row-cols-md-2 g-3">
                         <div class="col">
-                            <a href="{{ route('admin.users.index') }}" class="text-decoration-none">
+                            <a href="{{ route('admin.activities.create') }}" class="text-decoration-none">
                                 <div class="card h-100 border-0 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="bi bi-people fs-1 text-primary mb-2"></i>
-                                        <h5>用戶管理</h5>
-                                        <p class="text-muted small">管理所有用戶帳號</p>
+                                        <i class="bi bi-plus-circle fs-1 text-primary mb-2"></i>
+                                        <h5>新增活動</h5>
+                                        <p class="text-muted small">創建新的活動</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="{{ route('admin.roles.index') }}" class="text-decoration-none">
+                            <a href="{{ route('admin.announcements.create') }}" class="text-decoration-none">
                                 <div class="card h-100 border-0 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="bi bi-person-badge fs-1 text-success mb-2"></i>
-                                        <h5>角色管理</h5>
-                                        <p class="text-muted small">管理系統角色</p>
+                                        <i class="bi bi-megaphone-fill fs-1 text-success mb-2"></i>
+                                        <h5>新增公告</h5>
+                                        <p class="text-muted small">發布新的公告</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="{{ route('admin.permissions.index') }}" class="text-decoration-none">
+                            <a href="{{ route('admin.activities.index') }}" class="text-decoration-none">
                                 <div class="card h-100 border-0 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="bi bi-key fs-1 text-info mb-2"></i>
-                                        <h5>權限管理</h5>
-                                        <p class="text-muted small">管理系統權限</p>
+                                        <i class="bi bi-list-ul fs-1 text-info mb-2"></i>
+                                        <h5>管理活動</h5>
+                                        <p class="text-muted small">查看所有活動</p>
                                     </div>
                                 </div>
                             </a>
                         </div>
                         <div class="col">
-                            <a href="{{ route('admin.settings.index') }}" class="text-decoration-none">
+                            <a href="{{ route('admin.announcements.index') }}" class="text-decoration-none">
                                 <div class="card h-100 border-0 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="bi bi-gear fs-1 text-warning mb-2"></i>
-                                        <h5>系統設定</h5>
-                                        <p class="text-muted small">管理網站設定</p>
+                                        <i class="bi bi-list-check fs-1 text-warning mb-2"></i>
+                                        <h5>管理公告</h5>
+                                        <p class="text-muted small">查看所有公告</p>
                                     </div>
                                 </div>
                             </a>
@@ -131,24 +120,29 @@
 
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">網站概覽</h5>
+                <div class="card-header">
+                    <h5 class="card-title mb-0">最新活動</h5>
                 </div>
                 <div class="card-body">
-                    <div class="list-group">
-                        <a href="{{ route('admin.activities.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            活動管理
-                            <span class="badge bg-primary rounded-pill">{{ $stats['activities'] ?? 0 }}</span>
-                        </a>
-                        <a href="{{ route('admin.announcements.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            公告管理
-                            <span class="badge bg-primary rounded-pill">{{ $stats['announcements'] ?? 0 }}</span>
-                        </a>
-                        <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            用戶管理
-                            <span class="badge bg-primary rounded-pill">{{ $stats['users'] ?? 0 }}</span>
-                        </a>
-                    </div>
+                    @if(isset($latestActivities) && $latestActivities->count() > 0)
+                        <div class="list-group">
+                            @foreach($latestActivities as $activity)
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ $activity->title }}</h6>
+                                        <small class="text-muted">{{ $activity->start_date->format('Y/m/d H:i') }}</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-{{ $activity->is_published ? 'success' : 'warning' }} rounded-pill">
+                                            {{ $activity->is_published ? '已發布' : '草稿' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted">目前沒有活動</p>
+                    @endif
                 </div>
             </div>
         </div>

@@ -1,6 +1,5 @@
 <?php
 
-// app/Http/Controllers/Admin/ActivityController.php
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -19,8 +18,7 @@ class ActivityController extends Controller
     
     public function create()
     {
-        $categories = ActivityCategory::all();
-        return view('admin.activities.create', compact('categories'));
+        return view('admin.activities.create');
     }
     
     public function store(Request $request)
@@ -36,21 +34,36 @@ class ActivityController extends Controller
             'max_participants' => 'required|integer|min:0',
             'location' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'activity_category_id' => 'required|exists:activity_categories,id',
+            'activity_category' => 'required|string|max:255',
             'is_published' => 'boolean',
         ]);
         
+        // 處理活動類別，如果不存在就創建
+        $categoryName = $validatedData['activity_category'];
+        $category = ActivityCategory::firstOrCreate(
+            ['name' => $categoryName],
+            ['slug' => Str::slug($categoryName)]
+        );
+        
+        $validatedData['activity_category_id'] = $category->id;
         $validatedData['is_published'] = $request->has('is_published');
+        
+        // 移除 activity_category，因為我們不需要存儲這個欄位
+        unset($validatedData['activity_category']);
         
         Activity::create($validatedData);
         
         return redirect()->route('admin.activities.index')->with('success', '活動已成功創建');
     }
     
+    public function show(Activity $activity)
+    {
+        return view('admin.activities.show', compact('activity'));
+    }
+    
     public function edit(Activity $activity)
     {
-        $categories = ActivityCategory::all();
-        return view('admin.activities.edit', compact('activity', 'categories'));
+        return view('admin.activities.edit', compact('activity'));
     }
     
     public function update(Request $request, Activity $activity)
@@ -66,11 +79,21 @@ class ActivityController extends Controller
             'max_participants' => 'required|integer|min:0',
             'location' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'activity_category_id' => 'required|exists:activity_categories,id',
+            'activity_category' => 'required|string|max:255',
             'is_published' => 'boolean',
         ]);
         
+        // 處理活動類別
+        $categoryName = $validatedData['activity_category'];
+        $category = ActivityCategory::firstOrCreate(
+            ['name' => $categoryName],
+            ['slug' => Str::slug($categoryName)]
+        );
+        
+        $validatedData['activity_category_id'] = $category->id;
         $validatedData['is_published'] = $request->has('is_published');
+        
+        unset($validatedData['activity_category']);
         
         $activity->update($validatedData);
         
