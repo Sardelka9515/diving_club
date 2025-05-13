@@ -46,6 +46,13 @@
                         <a class="nav-link {{ request()->is('announcements*') ? 'active' : '' }}" href="{{ route('announcements.index') }}">公告</a>
                     </li>
                 </ul>
+
+                <!-- 搜尋欄 -->
+                <form action="{{ route('search') }}" method="GET" class="d-flex justify-content-end" role="search" style="margin-left: 200px;">
+                    <input class="form-control me-2" type="search" name="q" value="{{ request('q') }}" placeholder="搜尋活動或公告" aria-label="搜尋" required style="width: 320px;"  autocomplete="on">
+                    <button class="btn btn-outline-light btn-sm" type="submit">搜尋</button>
+                </form>
+
                 <!-- 導航部分 -->
                 <ul class="navbar-nav ms-auto">
                     @guest
