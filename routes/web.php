@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 // 首頁路由
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -45,7 +46,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/activities/{activity}/unregister', [App\Http\Controllers\ActivityController::class, 'unregister'])->name('activities.unregister');
 });
 
-// 管理員後台路由 - Laravel 12 格式
+// 管理員後台路由 - 根據角色分配權限
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
     
     // 儀表板 - admin 和 super 都可使用
