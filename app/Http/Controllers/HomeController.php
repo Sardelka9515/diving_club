@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Activity;
 use App\Models\Announcement;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -30,6 +31,31 @@ class HomeController extends Controller
             ->take(5)
             ->get();
             
-        return view('home', compact('latestActivities', 'pinnedAnnouncements', 'latestAnnouncements'));
+        // 準備日曆資料
+        $currentMonth = Carbon::now();
+        $calendarActivities = Activity::where('is_published', true)
+            ->whereMonth('start_date', $currentMonth->month)
+            ->whereYear('start_date', $currentMonth->year)
+            ->get()
+            ->groupBy(function($activity) {
+                return $activity->start_date->format('Y-m-d');
+            });
+            
+        $firstDayOfMonth = Carbon::create($currentMonth->year, $currentMonth->month, 1);
+        $daysInMonth = $currentMonth->daysInMonth;
+        $startOfCalendar = $firstDayOfMonth->copy()->startOfWeek();
+        $endOfCalendar = $firstDayOfMonth->copy()->endOfMonth()->endOfWeek();
+        
+        return view('home', compact(
+            'latestActivities', 
+            'pinnedAnnouncements', 
+            'latestAnnouncements',
+            'currentMonth',
+            'calendarActivities',
+            'firstDayOfMonth',
+            'daysInMonth',
+            'startOfCalendar',
+            'endOfCalendar'
+        ));
     }
 }
