@@ -2,6 +2,35 @@
 
 @section('title', '首頁')
 
+@section('styles')
+<style>
+    .calendar-table {
+        table-layout: fixed;
+    }
+    
+    .calendar-day {
+        height: 100px;
+        vertical-align: top;
+        padding: 5px;
+    }
+    
+    .date-header {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .calendar-event {
+        margin-bottom: 3px;
+    }
+    
+    .calendar-event a {
+        font-size: 0.8rem;
+        display: block;
+        text-decoration: none;
+    }
+</style>
+@endsection
+
 @section('content')
 <div class="jumbotron bg-light p-5 mb-4 rounded">
     <div class="container">
@@ -19,6 +48,72 @@
 </div>
 
 <div class="container">
+    <!-- 活動日曆 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>本月活動日曆</h2>
+                <div>
+                    <span class="fs-5">{{ $currentMonth->format('Y年m月') }}</span>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <table class="table table-bordered calendar-table">
+                        <thead>
+                            <tr class="text-center">
+                                <th>週日</th>
+                                <th>週一</th>
+                                <th>週二</th>
+                                <th>週三</th>
+                                <th>週四</th>
+                                <th>週五</th>
+                                <th>週六</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                $day = $startOfCalendar->copy();
+                            @endphp
+                            
+                            @while ($day <= $endOfCalendar)
+                                @if ($day->dayOfWeek === 0)
+                                    <tr>
+                                @endif
+                                
+                                <td class="calendar-day {{ $day->month !== $currentMonth->month ? 'text-muted' : '' }} 
+                                           {{ $day->isToday() ? 'bg-light' : '' }}">
+                                    <div class="date-header">{{ $day->day }}</div>
+                                    
+                                    @if(isset($calendarActivities[$day->format('Y-m-d')]))
+                                        <div class="calendar-events">
+                                            @foreach($calendarActivities[$day->format('Y-m-d')] as $activity)
+                                                <div class="calendar-event">
+                                                    <a href="{{ route('activities.show', $activity) }}" class="badge bg-primary text-truncate d-block">
+                                                        {{ Str::limit($activity->title, 15) }}
+                                                    </a>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
+                                
+                                @if ($day->dayOfWeek === 6)
+                                    </tr>
+                                @endif
+                                
+                                @php
+                                    $day->addDay();
+                                @endphp
+                            @endwhile
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 最新活動 -->
     <div class="row mb-5">
         <div class="col-12">
