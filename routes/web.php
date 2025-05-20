@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
+
 // 首頁路由
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
@@ -12,12 +13,12 @@ Route::get('/test-page', function () {
     $isLoggedIn = Auth::check();
     $user = $isLoggedIn ? Auth::user() : null;
     $roles = $isLoggedIn ? $user->roles()->pluck('name')->toArray() : [];
-    
+
     return view('test-page', compact('isLoggedIn', 'user', 'roles'));
 });
 
 // 身份驗證路由（login, register等）
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
 
 // 儀表板
 Route::get('/dashboard', function () {
@@ -46,22 +47,39 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/activities/{activity}/unregister', [App\Http\Controllers\ActivityController::class, 'unregister'])->name('activities.unregister');
 });
 
+Route::middleware(['auth'])->group(function () {
+    Route::post('/activities/{activity}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
+    Route::put('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update');
+    Route::delete('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::post('/comments/{comment}/reply', [App\Http\Controllers\CommentController::class, 'reply'])->name('comments.reply');
+});
+
 // 管理員後台路由 - 根據角色分配權限
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
-    
+
     // 儀表板 - admin 和 super 都可使用
     Route::get('/dashboard', [App\Http\Controllers\Admin\DashboardController::class, 'index'])
         ->middleware('role:admin,super')
         ->name('dashboard');
-    
+
     // 活動管理 - admin 和 super 可使用
     Route::resource('activities', App\Http\Controllers\Admin\ActivityController::class)
         ->middleware('role:admin,super');
-    
+
     // 公告管理 - admin 和 super 可使用  
     Route::resource('announcements', App\Http\Controllers\Admin\AnnouncementController::class)
         ->middleware('role:admin,super');
-    
+
+    // Comment 管理 - admin 和 super 可使用
+    Route::middleware(['auth', 'role:admin,super'])->group(function () {
+        Route::get('/comments', [App\Http\Controllers\Admin\CommentController::class, 'index'])->name('comments.index');
+        Route::get('/comments/{comment}/edit', [App\Http\Controllers\Admin\CommentController::class, 'edit'])->name('comments.edit');
+        Route::put('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'update'])->name('comments.update');
+        Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
+        Route::patch('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
+        Route::patch('/comments/{comment}/reject', [App\Http\Controllers\Admin\CommentController::class, 'reject'])->name('comments.reject');
+    });
+
     // 超級管理員專用功能
     Route::middleware('role:super')->group(function () {
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
