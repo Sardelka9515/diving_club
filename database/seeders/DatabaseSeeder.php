@@ -7,12 +7,13 @@ use App\Models\Activity;
 use App\Models\ActivityCategory;
 use App\Models\Announcement;
 use App\Models\User;
+use App\Models\Role;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-
+// use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
-    
     public function run()
     {
         // 確保有用戶存在來創建公告
@@ -24,7 +25,42 @@ class DatabaseSeeder extends Seeder
                 'password' => bcrypt('password'),
             ]);
         }
-        
+
+        $roles = [
+            ['name' => '超級管理員', 'slug' => 'super', 'description' => '擁有所有權限的管理員'],
+            ['name' => '管理員', 'slug' => 'admin', 'description' => '擁有管理活動和公告的權限'],
+            ['name' => '社員', 'slug' => 'member', 'description' => '一般會員'],
+            ['name' => '非社員', 'slug' => 'user', 'description' => '非會員'],
+        ];
+
+        foreach ($roles as $role) {
+            Role::firstOrCreate(
+                ['slug' => $role['slug']],
+                [
+                    'name' => $role['name'],
+                    'description' => $role['description'],
+                ]
+            );
+        }
+
+        $superRole = Role::where('slug', 'super')->first();
+
+        $superUser = User::firstorCreate(
+            ['email' => 'super@example.com'],
+            [
+                'name' => '超級管理員',
+                'password' => Hash::make('password'),
+                'email_verified_at' => now(),
+            ]
+            );
+
+        if (!$superUser->roles()->where('role_id', )->exists()) {
+            $superUser->roles()->attach($superRole);
+        }
+
+        $userRole = Role::where('slug', 'user')->first();
+        $user->roles()->attach($userRole);
+
         // 創建活動分類
         $categories = [
             ['name' => '體驗潛水', 'slug' => 'experience'],
@@ -33,11 +69,11 @@ class DatabaseSeeder extends Seeder
             ['name' => '海洋生態', 'slug' => 'ecology'],
             ['name' => '社交活動', 'slug' => 'social'],
         ];
-        
+
         foreach ($categories as $category) {
             ActivityCategory::firstOrCreate($category);
         }
-        
+
         // 創建範例活動
         $activities = [
             [
@@ -111,11 +147,11 @@ class DatabaseSeeder extends Seeder
                 'is_published' => true,
             ],
         ];
-        
+
         foreach ($activities as $activity) {
             Activity::create($activity);
         }
-        
+
         // 創建範例公告
         $announcements = [
             [
@@ -159,7 +195,7 @@ class DatabaseSeeder extends Seeder
                 'published_at' => now()->subDays(15),
             ],
         ];
-        
+
         foreach ($announcements as $announcement) {
             Announcement::create($announcement);
         }
