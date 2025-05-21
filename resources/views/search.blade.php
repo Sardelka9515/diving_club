@@ -2,15 +2,15 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
-  <div class="d-flex align-items-center gap-2 mb-4">
-    <form action="{{ route('search') }}" method="GET" class="d-flex flex-grow-1 gap-2">
-      <input type="text" name="q" class="form-control w-50" placeholder="輸入關鍵字" value="{{ request('q') }}">
-      <select name="sort" class="form-select w-auto">
-        <option value="" {{ request('sort') == '' ? 'selected' : '' }}>相關性</option>
-        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>最新</option>
+  <div class="container">
+  <div class="d-flex justify-content-end mb-2">
+    <form action="{{ route('search') }}" method="GET" class="d-flex align-items-center">
+      <input type="hidden" name="q" value="{{ request('q') }}">
+      <select name="sort" class="form-select form-select-sm" onchange="this.form.submit()">
+        <option value="relevance" {{ request('sort') == 'relevance' ? 'selected' : '' }}>相關性</option>
+        <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>時間（晚到早）</option>
+        <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>時間（早到晚）</option>
       </select>
-      <button type="submit" class="btn btn-primary">搜尋</button>
     </form>
   </div>
 
@@ -28,7 +28,7 @@
     @endforelse
   </div>
 
-  <div class="mb-4">
+  <div class="mb-4 mt-5">
     <h4>公告結果</h4>
     @forelse($announcements as $item)
       <a href="{{ route('announcements.show', $item->id) }}" class="card mb-2 text-decoration-none text-dark">
@@ -42,19 +42,6 @@
     @endforelse
   </div>
 
-  @if($recentKeywords->isNotEmpty())
-    <div class="mt-4">
-      <label class="form-label fw-bold">最近搜尋：</label>
-      <div class="d-flex flex-wrap gap-2 mb-1">
-        @foreach($recentKeywords as $keyword)
-          <a href="{{ route('search', ['q' => $keyword]) }}" class="badge bg-secondary text-decoration-none">{{ $keyword }}</a>
-        @endforeach
-      </div>
-      <form action="{{ route('search.clearLogs') }}" method="POST">
-        @csrf
-        <button type="submit" class="btn btn-link p-0 m-0 align-baseline text-danger" style="font-size: 0.85rem;">清除紀錄</button>
-      </form>
-    </div>
-  @endif
+  
 </div>
 @endsection

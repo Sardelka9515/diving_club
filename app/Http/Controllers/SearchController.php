@@ -31,29 +31,42 @@ class SearchController extends Controller
         $activities = Activity::query()
             ->when($query, function ($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('description', 'like', "%{$query}%");
+                    ->orWhere('description', 'like', "%{$query}%");
             })
-            ->when($sort === 'newest', fn($q) => $q->orderBy('created_at', 'desc'))
+            ->when($sort === 'newest', fn ($q) => $q->orderBy('created_at', 'desc'))
+            ->when($sort === 'oldest', fn ($q) => $q->orderBy('created_at'))
             ->get();
 
         $announcements = Announcement::query()
             ->when($query, function ($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
-                  ->orWhere('content', 'like', "%{$query}%");
+                    ->orWhere('content', 'like', "%{$query}%");
             })
-            ->when($sort === 'newest', fn($q) => $q->orderBy('created_at', 'desc'))
+            ->when($sort === 'newest', fn ($q) => $q->orderBy('created_at', 'desc'))
+            ->when($sort === 'oldest', fn ($q) => $q->orderBy('created_at'))
             ->get();
 
-        // 撈出最近的搜尋關鍵字
-        $recentKeywords = collect();
+        // 撈出最近不重複搜尋關鍵字（最新每組 keyword）
+        $baseQuery = SearchLog::query()
+            ->when(auth()->check(),
+                fn ($q) => $q->where('user_id', auth()->id()),
+                fn ($q) => $q->where('session_id', $request->session()->getId())
+            );
 
-        if (auth()->check()) {
-            $recentKeywords = SearchLog::where('user_id', auth()->id())
-                ->latest()->limit(5)->pluck('keyword');
-        } else {
-            $recentKeywords = SearchLog::where('session_id', session()->getId())
-                ->latest()->limit(5)->pluck('keyword');
-        }
+        // 先找出每個 keyword 最新的 id
+        $latestIds = $baseQuery
+            ->selectRaw('MAX(id) as id')
+            ->groupBy('keyword')
+            ->pluck('id');
+
+        // 撈出那幾筆資料，照時間排序
+        $allKeywords = SearchLog::whereIn('id', $latestIds)
+            ->orderByDesc('created_at')
+            ->pluck('keyword');
+
+        $recentKeywords = $allKeywords->take(5)->values();
+        $reserveKeywords = $allKeywords->slice(5)->values();
+
 
         return view('search', [
             'query' => $query,
@@ -61,10 +74,28 @@ class SearchController extends Controller
             'announcements' => $announcements,
             'activities' => $activities,
             'recentKeywords' => $recentKeywords,
+            'reserveKeywords' => $reserveKeywords,
         ]);
     }
 
-    public function clearSearchLogs()
+    public function deleteLog(Request $request)
+    {
+        $keyword = $request->input('keyword');
+
+        $query = SearchLog::query();
+
+        if (auth()->check()) {
+            $query->where('user_id', auth()->id());
+        } else {
+            $query->where('session_id', session()->getId());
+        }
+
+        $query->where('keyword', $keyword)->delete();
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function clearLogs(Request $request)
     {
         if (auth()->check()) {
             SearchLog::where('user_id', auth()->id())->delete();
@@ -72,7 +103,8 @@ class SearchController extends Controller
             SearchLog::where('session_id', session()->getId())->delete();
         }
 
-        return redirect()->route('search')->with('message', '搜尋紀錄已清除');
+        return response()->json(['status' => 'cleared']);
     }
 
 }
+

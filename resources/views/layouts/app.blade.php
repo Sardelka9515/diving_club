@@ -19,6 +19,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     
     @stack('styles')
+
+    <script>
+        window.recentKeywords = @json($recentKeywords->pluck('keyword')->unique()->take(5));
+        window.reserveKeywords = @json($reserveKeywords);
+    </script>
+
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/search.js'])
+
 </head>
 
 <body>
@@ -48,9 +56,47 @@
                 </ul>
 
                 <!-- 搜尋欄 -->
-                <form action="{{ route('search') }}" method="GET" class="d-flex justify-content-end" role="search" style="margin-left: 200px;">
-                    <input class="form-control me-2" type="search" name="q" value="{{ request('q') }}" placeholder="搜尋活動或公告" aria-label="搜尋" required style="width: 320px;"  autocomplete="on">
-                    <button class="btn btn-outline-light btn-sm" type="submit">搜尋</button>
+                <form action="{{ route('search') }}" method="GET" role="search" class="d-flex justify-content-end" style="margin-left: 200px;">
+                <div style="position: relative; width: 320px;">
+                    <input
+                    id="searchInput"
+                    name="q"
+                    type="search"
+                    class="form-control me-2"
+                    placeholder="搜尋活動或公告"
+                    value="{{ request('q') }}"
+                    autocomplete="off"
+                    required
+                    aria-label="搜尋"
+                    style="width: 100%;"
+                    />
+
+                    <ul id="searchSuggestions" class="list-group"
+                        style="position: absolute; top: 100%; width: 100%; z-index: 1000; display: none; max-height: 280px; overflow-y: auto;">
+                    @foreach ($recentKeywords as $keyword)
+                        <li class="list-group-item d-flex justify-content-between align-items-center search-suggestion-item"
+                            data-keyword="{{ $keyword }}">
+                        <span>{{ $keyword }}</span>
+                        <button
+                            type="button"
+                            class="remove-keyword-btn"
+                            data-keyword="{{ $keyword }}"
+                            style="border: none; background: none; color: #888; font-size: 16px;">
+                            ×
+                        </button>
+                        </li>
+                    @endforeach
+
+                    @if ($recentKeywords->isNotEmpty())
+                        <li id="clearSearchItem" class="list-group-item">
+                            <span class="text-danger ms-1" style="cursor:pointer;" id="clearAllKeywords">清除紀錄</span>
+
+                        </li>
+                    @endif
+                    </ul>
+                </div>
+
+                <button type="submit" class="btn btn-outline-light btn-sm ms-2">搜尋</button>
                 </form>
 
                 <!-- 導航部分 -->

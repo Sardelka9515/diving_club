@@ -80,5 +80,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
 // 搜尋功能
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::post('/search/clear', [SearchController::class, 'clearSearchLogs'])->name('search.clearLogs');
+// 單筆刪除
+Route::post('/search/logs/delete', [SearchController::class, 'deleteLog']);
+Route::get('/search/logs/recent', [SearchController::class, 'refreshRecent']);
+
+
+// 清空全部
+Route::post('/search/logs/clear', [SearchController::class, 'clearLogs']);
 Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
 Route::get('/activities/{id}', [ActivityController::class, 'show'])->name('activities.show');
+Route::get('/search/logs/recent', [SearchController::class, 'recentLogs']);
+
