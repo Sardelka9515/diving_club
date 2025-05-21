@@ -12,23 +12,31 @@ class CommentController extends Controller
     {
         $status = $request->get('status', 'all');
         $search = $request->get('search');
-        
+        $reported = $request->get('reported') == 'true';
+        $recent = $request->get('recent') == 'true';
+
         $comments = Comment::with(['user', 'activity'])
             ->when($status !== 'all', function ($query) use ($status) {
                 return $query->where('status', $status);
             })
             ->when($search, function ($query) use ($search) {
                 return $query->where('content', 'like', "%{$search}%")
-                            ->orWhereHas('user', function ($q) use ($search) {
-                                $q->where('name', 'like', "%{$search}%");
-                            })
-                            ->orWhereHas('activity', function ($q) use ($search) {
-                                $q->where('title', 'like', "%{$search}%");
-                            });
+                    ->orWhereHas('user', function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('activity', function ($q) use ($search) {
+                        $q->where('title', 'like', "%{$search}%");
+                    });
+            })
+            ->when($reported, function ($query) {
+                return $query->whereHas('reports');
+            })
+            ->when($recent, function ($query) {
+                return $query->where('created_at', '>=', now()->subDay());
             })
             ->latest()
             ->paginate(15);
-            
+
         return view('admin.comments.index', compact('comments', 'status'));
     }
 
@@ -53,21 +61,21 @@ class CommentController extends Controller
     public function destroy(Comment $comment)
     {
         $comment->delete();
-        
+
         return redirect()->route('admin.comments.index')->with('success', '評論已刪除。');
     }
 
     public function approve(Comment $comment)
     {
         $comment->update(['status' => 'approved']);
-        
+
         return back()->with('success', '評論已核准。');
     }
 
     public function reject(Comment $comment)
     {
         $comment->update(['status' => 'rejected']);
-        
+
         return back()->with('success', '評論已拒絕。');
     }
 }

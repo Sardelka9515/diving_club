@@ -38,6 +38,11 @@ class Comment extends Model
         return $this->belongsTo(Comment::class, 'parent_id');
     }
 
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');

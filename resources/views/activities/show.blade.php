@@ -180,51 +180,67 @@
                                                         class="d-inline">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-light"
+                                                        <button type="submit" class="btn btn-sm btn-light me-2"
                                                             onclick="return confirm('確定要刪除此評論嗎？')">
                                                             <i class="bi bi-trash"></i> 刪除
                                                         </button>
                                                     </form>
                                                 @endcan
-                                            </div>
 
-                                            <!-- 編輯表單 (預設隱藏) -->
-                                            <div class="edit-form mt-3" id="edit-form-{{ $comment->id }}"
-                                                style="display: none;">
-                                                <form action="{{ route('comments.update', $comment) }}" method="POST">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <div class="mb-3">
-                                                        <textarea class="form-control" name="content" rows="3">{{ $comment->content }}</textarea>
-                                                    </div>
-                                                    <div class="d-flex justify-content-end">
-                                                        <button type="button"
-                                                            class="btn btn-sm btn-secondary me-2 cancel-edit-btn"
-                                                            data-comment-id="{{ $comment->id }}">取消</button>
-                                                        <button type="submit" class="btn btn-sm btn-primary">更新</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-
-                                            <!-- 回覆表單 (預設隱藏) -->
-                                            <div class="reply-form mt-3" id="reply-form-{{ $comment->id }}"
-                                                style="display: none;">
                                                 @auth
-                                                    <form action="{{ route('comments.reply', $comment) }}" method="POST">
-                                                        @csrf
-                                                        <div class="mb-3">
-                                                            <textarea class="form-control" name="content" rows="3" placeholder="回覆 {{ $comment->user->name }}..."></textarea>
+                                                    <button class="btn btn-sm btn-light report-btn"
+                                                        data-comment-id="{{ $comment->id }}" data-bs-toggle="modal"
+                                                        data-bs-target="#reportModal-{{ $comment->id }}">
+                                                        <i class="bi bi-flag"></i> 舉報
+                                                    </button>
+
+                                                    <!-- 舉報彈窗 -->
+                                                    <div class="modal fade" id="reportModal-{{ $comment->id }}"
+                                                        tabindex="-1" aria-hidden="true">
+                                                        <div class="modal-dialog">
+                                                            <div class="modal-content">
+                                                                <div class="modal-header">
+                                                                    <h5 class="modal-title">舉報不當評論</h5>
+                                                                    <button type="button" class="btn-close"
+                                                                        data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                </div>
+                                                                <form action="{{ route('comments.report', $comment) }}"
+                                                                    method="POST">
+                                                                    @csrf
+                                                                    <div class="modal-body">
+                                                                        <div class="mb-3">
+                                                                            <label class="form-label">評論內容</label>
+                                                                            <p class="border p-2 bg-light">
+                                                                                {{ $comment->content }}</p>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="reason-{{ $comment->id }}"
+                                                                                class="form-label">舉報原因</label>
+                                                                            <select class="form-select"
+                                                                                id="reason-{{ $comment->id }}"
+                                                                                name="reason" required>
+                                                                                <option value="">請選擇舉報原因...</option>
+                                                                                <option value="spam">垃圾/廣告訊息</option>
+                                                                                <option value="offensive">冒犯性內容</option>
+                                                                                <option value="inappropriate">不恰當內容</option>
+                                                                                <option value="other">其他原因</option>
+                                                                            </select>
+                                                                        </div>
+                                                                        <div class="mb-3">
+                                                                            <label for="details-{{ $comment->id }}"
+                                                                                class="form-label">詳細說明 (選填)</label>
+                                                                            <textarea class="form-control" id="details-{{ $comment->id }}" name="details" rows="3"></textarea>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="modal-footer">
+                                                                        <button type="button" class="btn btn-secondary"
+                                                                            data-bs-dismiss="modal">取消</button>
+                                                                        <button type="submit"
+                                                                            class="btn btn-danger">提交舉報</button>
+                                                                    </div>
+                                                                </form>
+                                                            </div>
                                                         </div>
-                                                        <div class="d-flex justify-content-end">
-                                                            <button type="button"
-                                                                class="btn btn-sm btn-secondary me-2 cancel-reply-btn"
-                                                                data-comment-id="{{ $comment->id }}">取消</button>
-                                                            <button type="submit" class="btn btn-sm btn-primary">回覆</button>
-                                                        </div>
-                                                    </form>
-                                                @else
-                                                    <div class="alert alert-info">
-                                                        請<a href="{{ route('login') }}" class="alert-link">登入</a>後回覆。
                                                     </div>
                                                 @endauth
                                             </div>
