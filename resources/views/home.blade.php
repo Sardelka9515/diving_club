@@ -25,16 +25,49 @@
         width: 100%;
     }
 
-    .calendar-table th, .calendar-table td {
-        width: 14.28%;
-        vertical-align: top;
-        word-wrap: break-word;
-        word-break: break-word;
+    /* 新增日曆卡片背景圖片樣式 */
+    .calendar-card {
+        background-image: url('{{ asset('images/beach.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        border-radius: 8px;
+        overflow: hidden;
     }
 
+    .calendar-card .card-body {
+        background-color: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(1px);
+        padding: 20px;
+    }
+
+    .calendar-table th, .calendar-table td {
+        background-color: transparent !important;
+    }
+
+    /* 非當月的日期欄位完全透明且不顯示日期數字 */
+    .calendar-day.text-muted {
+        background-color: transparent !important;
+        color: transparent !important; /* 隱藏文字 */
+        pointer-events: none; /* 禁止互動 */
+    }
+
+    /* 當月的日期欄位透明化 */
     .calendar-day {
-        height: 90px; /* 先設定這樣的高度 */
+        background-color: rgba(255, 255, 255, 0.3); /* 半透明背景 */
+        height: 90px; /* 保持原有高度 */
         padding: 4px;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    /* 當月日期的 hover 效果 */
+    .calendar-day:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 當天日期的樣式 */
+    .calendar-day.bg-light {
+        background-color: rgba(200, 200, 200, 0.85) !important; /* 灰色背景 */
     }
 
     .calendar-events {
@@ -46,10 +79,16 @@
         line-height: 1.2;
         font-size: 0.75rem;
         display: block;
+        transition: all 0.2s;
     }
 
-    .empty-event {
-        visibility: hidden;
+    .calendar-event .badge:hover {
+        transform: translateY(-1px);
+    }
+
+    .date-header {
+        text-align: right;
+        padding-right: 5px;
     }
 </style>
 
@@ -109,6 +148,10 @@
                                                 </div>
                                             @endforeach
                                         @else
+                                            <!-- 填充空白活動區，保持一致的高度 -->
+                                            <div class="calendar-event">
+                                                <span class="empty-event">&nbsp;</span>
+                                            </div>
                                             <div class="calendar-event">
                                                 <span class="empty-event">&nbsp;</span>
                                             </div>
