@@ -62,6 +62,10 @@ class CommentController extends Controller
     {
         $comment->delete();
 
+        if ($comment->parent_id === null) {
+            Comment::where("parent_id", $comment->id)->delete();
+        }
+
         return redirect()->route('admin.comments.index')->with('success', '評論已刪除。');
     }
 

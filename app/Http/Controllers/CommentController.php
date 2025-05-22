@@ -58,6 +58,12 @@ class CommentController extends Controller
     {
         $this->authorize('delete', $comment);
 
+        // Check if it's a parent comment with replies
+        if ($comment->parent_id === null) {
+            // Delete all replies first
+            Comment::where('parent_id', $comment->id)->delete();
+        }
+
         $comment->delete();
 
         return back()->with('success', '評論已刪除。');
