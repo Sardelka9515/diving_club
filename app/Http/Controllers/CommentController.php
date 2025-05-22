@@ -60,8 +60,10 @@ class CommentController extends Controller
 
         // Check if it's a parent comment with replies
         if ($comment->parent_id === null) {
-            // Delete all replies first
-            Comment::where('parent_id', $comment->id)->delete();
+            foreach ($comment->replies as $reply) {
+                Report::where('comment_id', $reply->id)->delete();
+                $reply->delete();
+            }
         }
 
         $report = Report::where('comment_id', $comment->id)->first();
@@ -117,14 +119,20 @@ class CommentController extends Controller
             return back()->with('error', '您已經舉報過此評論');
         }
 
+        // 建立舉報記錄
         $report = new Report([
             'comment_id' => $comment->id,
             'user_id' => Auth::id(),
             'reason' => $request->reason,
             'details' => $request->details,
+            'status' => 'pending', // 預設為待處理狀態
         ]);
 
         $report->save();
+
+        // 更新評論的舉報標記
+        $comment->is_reported = true;
+        $comment->save();
 
         // 發送通知給管理員
         $admins = User::whereHas('roles', function ($query) {
@@ -137,23 +145,39 @@ class CommentController extends Controller
 
         return back()->with('success', '感謝您的舉報，我們會盡快處理');
     }
-    
+
+    public function toggleVisibility(Comment $comment)
+    {
+        // 確保只有自己的評論可以切換可見性
+        $this->authorize('update', $comment);
+
+        $comment->is_visible = !$comment->is_visible;
+        $comment->save();
+
+        $status = $comment->is_visible ? '顯示' : '隱藏';
+
+        return back()->with('success', "評論已設為{$status}");
+    }
+
     /**
-     * Display the member's comments
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
+     * 修改會員評論列表方法以支援新狀態過濾
      */
     public function memberComments(Request $request)
     {
         $query = Comment::where('user_id', Auth::id());
 
-        // Handle status filter
+        // 處理狀態過濾
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            if ($request->status === 'published') {
+                $query->where('is_visible', true)->where('is_reported', false);
+            } elseif ($request->status === 'hidden') {
+                $query->where('is_visible', false);
+            } elseif ($request->status === 'reported') {
+                $query->where('is_reported', true);
+            }
         }
 
-        // Handle type filter (comment or reply)
+        // 處理類型過濾
         if ($request->filled('type')) {
             if ($request->type === 'comment') {
                 $query->whereNull('parent_id');
@@ -162,12 +186,12 @@ class CommentController extends Controller
             }
         }
 
-        // Handle search
+        // 處理搜尋
         if ($request->filled('search')) {
             $query->where('content', 'like', '%' . $request->search . '%');
         }
 
-        // Get the comments with relations
+        // 獲取評論並帶相關關聯
         $comments = $query->with(['activity:id,title', 'parent.user:id,name', 'parent:id,content,user_id'])
             ->latest()
             ->paginate(10)

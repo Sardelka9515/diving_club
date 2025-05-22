@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use App\Models\Comment;
 use App\Models\Report;
 use Illuminate\Http\Request;
@@ -11,34 +12,89 @@ class CommentController extends Controller
 {
     public function index(Request $request)
     {
-        $status = $request->get('status', 'all');
-        $search = $request->get('search');
-        $reported = $request->get('reported') == 'true';
-        $recent = $request->get('recent') == 'true';
+        // 設置基本查詢
+        $query = Comment::withCount('reports')
+            ->with(['user:id,name', 'activity:id,title']);
 
-        $comments = Comment::with(['user', 'activity'])
-            ->when($status !== 'all', function ($query) use ($status) {
-                return $query->where('status', $status);
-            })
-            ->when($search, function ($query) use ($search) {
-                return $query->where('content', 'like', "%{$search}%")
+        // 狀態過濾
+        $status = $request->get('status', 'all');
+
+        if ($status === 'published') {
+            $query->where('status', 'approved')
+                ->where('is_visible', true)
+                ->where('is_reported', false);
+        } elseif ($status === 'hidden') {
+            $query->where('is_visible', false);
+        } elseif ($status === 'reported') {
+            $query->where('is_reported', true);
+        } elseif ($status === 'pending') {
+            $query->where('status', 'pending');
+        } elseif ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        // 檢舉過濾
+        if ($request->has('reported') && $request->reported == 'true') {
+            $query->where('is_reported', true);
+        }
+
+        // 最近過濾
+        if ($request->has('recent') && $request->recent == 'true') {
+            $query->where('created_at', '>=', Carbon::now()->subHours(24));
+        }
+
+        // 搜尋過濾
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('content', 'like', "%$search%")
                     ->orWhereHas('user', function ($q) use ($search) {
-                        $q->where('name', 'like', "%{$search}%");
+                        $q->where('name', 'like', "%$search%");
                     })
                     ->orWhereHas('activity', function ($q) use ($search) {
-                        $q->where('title', 'like', "%{$search}%");
+                        $q->where('title', 'like', "%$search%");
                     });
-            })
-            ->when($reported, function ($query) {
-                return $query->whereHas('reports');
-            })
-            ->when($recent, function ($query) {
-                return $query->where('created_at', '>=', now()->subDay());
-            })
-            ->latest()
-            ->paginate(15);
+            });
+        }
 
-        return view('admin.comments.index', compact('comments', 'status'));
+        // 獲取統計資料
+        $stats = [
+            'total' => Comment::count(),
+            'published' => Comment::where('status', 'approved')->where('is_visible', true)->where('is_reported', false)->count(),
+            'hidden' => Comment::where('is_visible', false)->count(),
+            'reported' => Comment::where('is_reported', true)->count(),
+            'pending' => Comment::where('status', 'pending')->count(),
+            'today' => Comment::where('created_at', '>=', Carbon::today())->count(),
+        ];
+
+        // 排序和分頁
+        $comments = $query->latest()->paginate(20);
+
+        return view('admin.comments.index', compact('comments', 'status', 'stats'));
+    }
+
+    // 切換評論可見性
+    public function toggleVisibility(Comment $comment)
+    {
+        $comment->is_visible = !$comment->is_visible;
+        $comment->save();
+
+        $status = $comment->is_visible ? '顯示' : '隱藏';
+        return back()->with('success', "評論 #{$comment->id} 已設為{$status}");
+    }
+
+    // 清除檢舉標記
+    public function clearReported(Comment $comment)
+    {
+        $comment->is_reported = false;
+        $report = Report::where('comment_id', $comment->id)->first();
+        if ($report) {
+            $report->delete();
+        }
+
+        $comment->save();
+
+        return back()->with('success', "評論 #{$comment->id} 已清除檢舉標記");
     }
 
     public function edit(Comment $comment)

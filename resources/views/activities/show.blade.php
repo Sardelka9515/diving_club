@@ -369,8 +369,9 @@
 
                         <!-- 評論列表 -->
                         <div class="comments-list">
-                            @if ($activity->comments()->approved()->whereNull('parent_id')->count() > 0)
-                                @foreach ($activity->comments()->approved()->whereNull('parent_id')->latest()->get() as $comment)
+                            <!-- 只顯示已批准且可見的評論 -->
+                            @if ($activity->comments()->approved()->visible()->whereNull('parent_id')->count() > 0)
+                                @foreach ($activity->comments()->approved()->visible()->whereNull('parent_id')->latest()->get() as $comment)
                                     <div class="comment-item mb-4 bg-white p-4 rounded-3 shadow-sm"
                                         id="comment-{{ $comment->id }}">
                                         <div class="d-flex">
@@ -437,6 +438,18 @@
                                                                 data-comment-content="{{ $comment->content }}">
                                                                 <i class="bi bi-pencil"></i> 編輯
                                                             </button>
+
+                                                            <!-- 添加顯示/隱藏按鈕 -->
+                                                            <form action="{{ route('comments.toggle-visibility', $comment) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('PATCH')
+                                                                <button type="submit" class="btn btn-sm btn-light">
+                                                                    <i
+                                                                        class="bi {{ $comment->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i>
+                                                                    {{ $comment->is_visible ? '隱藏' : '顯示' }}
+                                                                </button>
+                                                            </form>
                                                         @endcan
 
                                                         @can('delete', $comment)
@@ -520,9 +533,9 @@
                                                 </div>
 
                                                 <!-- 回覆列表 -->
-                                                @if ($comment->replies()->approved()->count() > 0)
+                                                @if ($comment->replies()->approved()->visible()->count() > 0)
                                                     <div class="replies mt-3">
-                                                        @foreach ($comment->replies()->approved()->get() as $reply)
+                                                        @foreach ($comment->replies()->approved()->visible()->get() as $reply)
                                                             <div class="reply bg-light p-3 rounded ms-2 mb-2 border-start border-4"
                                                                 style="border-color: var(--ocean-light) !important;"
                                                                 id="comment-{{ $reply->id }}">
@@ -594,6 +607,19 @@
                                                                                         data-comment-content="{{ $reply->content }}">
                                                                                         <i class="bi bi-pencil"></i> 編輯
                                                                                     </button>
+
+                                                                                    <!-- 添加顯示/隱藏按鈕 -->
+                                                                                    <form
+                                                                                        action="{{ route('comments.toggle-visibility', $reply) }}"
+                                                                                        method="POST" class="d-inline">
+                                                                                        @csrf
+                                                                                        @method('PATCH')
+                                                                                        <button type="submit"
+                                                                                            class="btn btn-sm btn-light">
+                                                                                            <i
+                                                                                                class="bi {{ $reply->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i> 隱藏
+                                                                                        </button>
+                                                                                    </form>
                                                                                 @endcan
 
                                                                                 @can('delete', $reply)

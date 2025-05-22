@@ -22,20 +22,24 @@
                             class="btn btn-{{ $status == 'all' ? 'primary' : 'outline-primary' }}">
                             全部
                         </a>
-                        <a href="{{ route('admin.comments.index', ['status' => 'approved']) }}"
-                            class="btn btn-{{ $status == 'approved' ? 'success' : 'outline-success' }}">
+                        <a href="{{ route('admin.comments.index', ['status' => 'published']) }}"
+                            class="btn btn-{{ $status == 'published' ? 'success' : 'outline-success' }}">
                             已發布
                         </a>
-                        <a href="{{ route('admin.comments.index', ['status' => 'rejected']) }}"
-                            class="btn btn-{{ $status == 'rejected' ? 'danger' : 'outline-danger' }}">
+                        <a href="{{ route('admin.comments.index', ['status' => 'hidden']) }}"
+                            class="btn btn-{{ $status == 'hidden' ? 'secondary' : 'outline-secondary' }}">
                             已隱藏
                         </a>
-                        <a href="{{ route('admin.comments.index', ['reported' => 'true']) }}"
-                            class="btn btn-{{ request('reported') == 'true' ? 'warning' : 'outline-warning' }}">
-                            被舉報
+                        <a href="{{ route('admin.comments.index', ['status' => 'reported']) }}"
+                            class="btn btn-{{ $status == 'reported' ? 'warning' : 'outline-warning' }}">
+                            被檢舉
                         </a>
+                        {{-- <a href="{{ route('admin.comments.index', ['status' => 'pending']) }}"
+                            class="btn btn-{{ $status == 'pending' ? 'info' : 'outline-info' }}">
+                            待審核
+                        </a> --}}
                         <a href="{{ route('admin.comments.index', ['recent' => 'true']) }}"
-                            class="btn btn-{{ request('recent') == 'true' ? 'info' : 'outline-info' }}">
+                            class="btn btn-{{ request('recent') == 'true' ? 'dark' : 'outline-dark' }}">
                             最近 24 小時
                         </a>
                     </div>
@@ -47,6 +51,58 @@
                             value="{{ request('search') }}">
                         <button class="btn btn-outline-success" type="submit">搜尋</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- 統計資訊 -->
+            <div class="row mb-4">
+                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">總評論</h5>
+                            <p class="card-text h3">{{ $stats['total'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center bg-success text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">已發布</h5>
+                            <p class="card-text h3">{{ $stats['published'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center bg-secondary text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">已隱藏</h5>
+                            <p class="card-text h3">{{ $stats['hidden'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center bg-warning">
+                        <div class="card-body">
+                            <h5 class="card-title">被檢舉</h5>
+                            <p class="card-text h3">{{ $stats['reported'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div>
+                {{-- <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center bg-info">
+                        <div class="card-body">
+                            <h5 class="card-title">待審核</h5>
+                            <p class="card-text h3">{{ $stats['pending'] ?? 0 }}</p>
+                        </div>
+                    </div>
+                </div> --}}
+                <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+                    <div class="card text-center bg-black text-white">
+                        <div class="card-body">
+                            <h5 class="card-title">今日新增</h5>
+                            <p class="card-text h3">{{ $stats['today'] ?? 0 }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -73,18 +129,31 @@
                                     @if ($comment->parent_id)
                                         <div class="badge bg-secondary mt-1">回覆評論 #{{ $comment->parent_id }}</div>
                                     @endif
+                                    @if ($comment->reports_count > 0)
+                                        <div class="badge bg-danger mt-1">
+                                            <i class="bi bi-flag-fill"></i> {{ $comment->reports_count }} 次檢舉
+                                        </div>
+                                    @endif
                                 </td>
-                                <td>{{ $comment->user->name }}</td>
+                                <td>
+                                    <a href="{{ route('admin.users.show', $comment->user_id) }}" data-bs-toggle="tooltip" title="查看用戶詳情">
+                                        {{ $comment->user->name }}
+                                    </a>
+                                </td>
                                 <td>
                                     <a href="{{ route('activities.show', $comment->activity) }}" target="_blank">
                                         {{ Str::limit($comment->activity->title, 20) }}
                                     </a>
                                 </td>
                                 <td>
-                                    @if ($comment->status == 'pending')
-                                        <span class="badge bg-warning">待審核</span>
+                                    @if ($comment->is_reported)
+                                        <span class="badge bg-danger">被檢舉</span>
+                                    @elseif(!$comment->is_visible)
+                                        <span class="badge bg-secondary">已隱藏</span>
+                                    @elseif($comment->status == 'pending')
+                                        <span class="badge bg-info">待審核</span>
                                     @elseif($comment->status == 'approved')
-                                        <span class="badge bg-success">已核准</span>
+                                        <span class="badge bg-success">已發布</span>
                                     @else
                                         <span class="badge bg-danger">已拒絕</span>
                                     @endif
@@ -92,54 +161,57 @@
                                 <td>{{ $comment->created_at->format('Y/m/d H:i') }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
+                                        <!-- 審核按鈕 -->
                                         @if ($comment->status == 'pending')
                                             <form action="{{ route('admin.comments.approve', $comment) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="bi bi-check"></i>
+                                                <button type="submit" class="btn btn-sm btn-success" data-bs-toggle="tooltip" title="核准">
+                                                    <i class="bi bi-check-lg"></i>
                                                 </button>
                                             </form>
                                             <form action="{{ route('admin.comments.reject', $comment) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="bi bi-x"></i>
-                                                </button>
-                                            </form>
-                                        @elseif($comment->status == 'rejected')
-                                            <form action="{{ route('admin.comments.approve', $comment) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-success">
-                                                    <i class="bi bi-check"></i>
-                                                </button>
-                                            </form>
-                                        @elseif($comment->status == 'approved')
-                                            <form action="{{ route('admin.comments.reject', $comment) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <button type="submit" class="btn btn-sm btn-danger">
-                                                    <i class="bi bi-x"></i>
+                                                <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="拒絕">
+                                                    <i class="bi bi-x-lg"></i>
                                                 </button>
                                             </form>
                                         @endif
 
+                                        <!-- 顯示/隱藏按鈕 -->
+                                        <form action="{{ route('admin.comments.toggle-visibility', $comment) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-sm {{ $comment->is_visible ? 'btn-outline-secondary' : 'btn-outline-success' }}" data-bs-toggle="tooltip" 
+                                                title="{{ $comment->is_visible ? '隱藏評論' : '顯示評論' }}">
+                                                <i class="bi {{ $comment->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i>
+                                            </button>
+                                        </form>
+
+                                        <!-- 編輯按鈕 -->
                                         <a href="{{ route('admin.comments.edit', $comment) }}"
-                                            class="btn btn-sm btn-primary">
+                                            class="btn btn-sm btn-primary" data-bs-toggle="tooltip" title="編輯">
                                             <i class="bi bi-pencil"></i>
                                         </a>
 
+                                        <!-- 查看檢舉 -->
+                                        @if ($comment->reports_count > 0)
+                                            <a href="{{ route('admin.reports.index', ['comment_id' => $comment->id]) }}"
+                                                class="btn btn-sm btn-warning" data-bs-toggle="tooltip" title="查看檢舉">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </a>
+                                        @endif
+
+                                        <!-- 刪除按鈕 -->
                                         <form action="{{ route('admin.comments.destroy', $comment) }}" method="POST"
                                             class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger"
-                                                onclick="return confirm('確定要刪除此評論嗎？')">
+                                            <button type="submit" class="btn btn-sm btn-danger" data-bs-toggle="tooltip" title="永久刪除"
+                                                onclick="return confirm('確定要永久刪除此評論嗎？此操作無法復原。')">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -161,4 +233,16 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        // 啟用所有工具提示
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    @endpush
 @endsection
