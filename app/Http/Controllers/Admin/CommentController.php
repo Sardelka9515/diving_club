@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comment;
+use App\Models\Report;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -64,6 +65,11 @@ class CommentController extends Controller
 
         if ($comment->parent_id === null) {
             Comment::where("parent_id", $comment->id)->delete();
+        }
+
+        $report = Report::where('comment_id', $comment->id)->first();
+        if ($report) {
+            $report->delete();
         }
 
         return redirect()->route('admin.comments.index')->with('success', '評論已刪除。');

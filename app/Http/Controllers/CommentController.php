@@ -64,6 +64,11 @@ class CommentController extends Controller
             Comment::where('parent_id', $comment->id)->delete();
         }
 
+        $report = Report::where('comment_id', $comment->id)->first();
+        if ($report) {
+            $report->delete();
+        }
+
         $comment->delete();
 
         return back()->with('success', '評論已刪除。');
@@ -99,7 +104,7 @@ class CommentController extends Controller
     public function report(Request $request, Comment $comment)
     {
         $request->validate([
-            'reason' => 'required|string|in:spam,offensive,inappropriate,other',
+            'reason' => 'required|string|in:dislike,harassment,self_harm,violence_hate,regulated_goods,nudity,fraud_spam,false_info,other',
             'details' => 'nullable|string|max:1000',
         ]);
 
@@ -131,5 +136,43 @@ class CommentController extends Controller
         }
 
         return back()->with('success', '感謝您的舉報，我們會盡快處理');
+    }
+    
+    /**
+     * Display the member's comments
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\View\View
+     */
+    public function memberComments(Request $request)
+    {
+        $query = Comment::where('user_id', Auth::id());
+
+        // Handle status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Handle type filter (comment or reply)
+        if ($request->filled('type')) {
+            if ($request->type === 'comment') {
+                $query->whereNull('parent_id');
+            } elseif ($request->type === 'reply') {
+                $query->whereNotNull('parent_id');
+            }
+        }
+
+        // Handle search
+        if ($request->filled('search')) {
+            $query->where('content', 'like', '%' . $request->search . '%');
+        }
+
+        // Get the comments with relations
+        $comments = $query->with(['activity:id,title', 'parent.user:id,name', 'parent:id,content,user_id'])
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('member.comments', compact('comments'));
     }
 }

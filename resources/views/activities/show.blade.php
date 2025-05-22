@@ -403,8 +403,22 @@
                                                 <div
                                                     class="comment-header d-flex justify-content-between align-items-center">
                                                     <h6 class="mb-0">{{ $comment->user->name }}</h6>
-                                                    <small
-                                                        class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                                                    <div class="d-flex flex-column align-items-center gap-1">
+                                                        <small
+                                                            class="text-muted">{{ $comment->created_at->diffForHumans() }}</small>
+                                                        @if ($comment->reports()->exists())
+                                                            @php
+                                                                $report = $comment->reports()->first();
+                                                                $status = $report->status; // 'pending', 'resolved'
+                                                            @endphp
+                                                            @if ($status == 'pending')
+                                                                <span class="ms-2 badge bg-warning" title="你已舉報此評論">
+                                                                    <i class="bi bi-flag-fill"></i>
+                                                                    管理員審查中
+                                                                </span>
+                                                            @endif
+                                                        @endif
+                                                    </div>
                                                 </div>
                                                 <div class="comment-content my-2">
                                                     <p class="mb-1">{{ $comment->content }}</p>
@@ -444,64 +458,11 @@
                                                                 <i class="bi bi-flag"></i> 舉報
                                                             </button>
 
-                                                            <!-- 舉報彈窗 -->
-                                                            <div class="modal fade" id="reportModal-{{ $comment->id }}"
-                                                                tabindex="-1" aria-hidden="true">
-                                                                <div class="modal-dialog modal-dialog-centered">
-                                                                    <div class="modal-content">
-                                                                        <div class="modal-header">
-                                                                            <h5 class="modal-title"><i
-                                                                                    class="bi bi-flag me-2"></i>舉報不當評論</h5>
-                                                                            <button type="button" class="btn-close"
-                                                                                data-bs-dismiss="modal"
-                                                                                aria-label="Close"></button>
-                                                                        </div>
-                                                                        <form
-                                                                            action="{{ route('comments.report', $comment) }}"
-                                                                            method="POST">
-                                                                            @csrf
-                                                                            <div class="modal-body">
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">評論內容</label>
-                                                                                    <div class="border p-3 rounded-3 bg-light">
-                                                                                        {{ $comment->content }}
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label for="reason-{{ $comment->id }}"
-                                                                                        class="form-label">舉報原因</label>
-                                                                                    <select class="form-select ocean-form"
-                                                                                        id="reason-{{ $comment->id }}"
-                                                                                        name="reason" required>
-                                                                                        <option value="">請選擇舉報原因...
-                                                                                        </option>
-                                                                                        <option value="spam">垃圾/廣告訊息</option>
-                                                                                        <option value="offensive">冒犯性內容
-                                                                                        </option>
-                                                                                        <option value="inappropriate">不恰當內容
-                                                                                        </option>
-                                                                                        <option value="other">其他原因</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <div class="mb-3">
-                                                                                    <label for="details-{{ $comment->id }}"
-                                                                                        class="form-label">詳細說明 (選填)</label>
-                                                                                    <textarea class="form-control ocean-form" id="details-{{ $comment->id }}" name="details" rows="3"></textarea>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="modal-footer">
-                                                                                <button type="button"
-                                                                                    class="btn btn-secondary"
-                                                                                    data-bs-dismiss="modal">取消</button>
-                                                                                <button type="submit"
-                                                                                    class="btn btn-danger"><i
-                                                                                        class="bi bi-flag-fill me-1"></i>
-                                                                                    提交舉報</button>
-                                                                            </div>
-                                                                        </form>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+                                                            @push('modals')
+                                                                <!-- 舉報彈窗 -->
+                                                                <x-report-modal :comment="$comment" :commentId="$comment->id"
+                                                                    :content="$comment->content" />
+                                                            @endpush
                                                         @endauth
                                                     </div>
                                                 </div>
@@ -597,8 +558,28 @@
                                                                             class="reply-header d-flex justify-content-between align-items-center">
                                                                             <h6 class="mb-0 small">
                                                                                 {{ $reply->user->name }}</h6>
-                                                                            <small
-                                                                                class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                                                            <div
+                                                                                class="d-flex flex-column align-items-center gap-1">
+                                                                                <small
+                                                                                    class="text-muted">{{ $reply->created_at->diffForHumans() }}</small>
+                                                                                @if ($reply->reports()->exists())
+                                                                                    @php
+                                                                                        $report = $reply
+                                                                                            ->reports()
+                                                                                            ->first();
+                                                                                        $status = $report->status; // 'pending', 'resolved'
+                                                                                    @endphp
+                                                                                    @if ($status == 'pending')
+                                                                                        <span class="ms-2 badge bg-warning"
+                                                                                            title="你已舉報此評論">
+                                                                                            <i class="bi bi-flag-fill"></i>
+                                                                                            管理員審查中
+                                                                                        </span>
+                                                                                    @elseif($status == 'resolved')
+                                                                                        <span></span>
+                                                                                    @endif
+                                                                                @endif
+                                                                            </div>
                                                                         </div>
                                                                         <div class="reply-content my-1">
                                                                             <p class="mb-1">{{ $reply->content }}</p>
@@ -628,6 +609,22 @@
                                                                                         </button>
                                                                                     </form>
                                                                                 @endcan
+
+                                                                                @auth
+                                                                                    <button
+                                                                                        class="btn btn-sm btn-light report-btn"
+                                                                                        data-comment-id="{{ $reply->id }}"
+                                                                                        data-bs-toggle="modal"
+                                                                                        data-bs-target="#reportModal-{{ $reply->id }}">
+                                                                                        <i class="bi bi-flag"></i> 舉報
+                                                                                    </button>
+
+                                                                                    @push('modals')
+                                                                                        <!-- 舉報彈窗 -->
+                                                                                        <x-report-modal :comment="$reply"
+                                                                                            :commentId="$reply->id" :content="$reply->content" />
+                                                                                    @endpush
+                                                                                @endauth
                                                                             </div>
 
                                                                             <!-- 回覆的編輯表單 (預設隱藏) -->

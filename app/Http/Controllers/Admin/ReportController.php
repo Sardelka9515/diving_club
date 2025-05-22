@@ -38,16 +38,4 @@ class ReportController extends Controller
         
         return back()->with('success', '舉報已標記為已處理。');
     }
-
-    /**
-     * Mark the report as rejected.
-     *
-     * @param  \App\Models\Report  $report
-     */
-    public function reject(Report $report)
-    {
-        $report->update(['status' => 'rejected']);
-        
-        return back()->with('success', '舉報已標記為已駁回。');
-    }
 }
