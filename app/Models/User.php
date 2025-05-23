@@ -40,7 +40,7 @@ class User extends Authenticatable
         'password' => 'hashed',
         'birth_date' => 'date',
     ];
-    
+
     public function roles()
     {
         return $this->belongsToMany(Role::class);
@@ -65,7 +65,7 @@ class User extends Authenticatable
         if (is_array($roleSlug)) {
             return $this->roles()->whereIn('slug', $roleSlug)->exists();
         }
-        
+
         // 如果傳入字串，檢查單一角色
         return $this->roles()->where('slug', $roleSlug)->exists();
     }
@@ -92,5 +92,10 @@ class User extends Authenticatable
     public function isMember()
     {
         return $this->hasRole('member');
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
     }
 }
