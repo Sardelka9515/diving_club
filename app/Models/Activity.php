@@ -10,6 +10,7 @@ class Activity extends Model
 {
     use HasFactory;
     
+=======
     // 在 Activity 模型中確保有以下關聯和可變屬性
     protected $fillable = [
         'title',
@@ -76,5 +77,20 @@ class Activity extends Model
             'content' => $this->content,
             'description' => $this->description,
         ];
+    }
+}
+=======
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+    public function approvedComments()
+    {
+        return $this->comments()->approved();
+    }
+
+    public function getApprovedCommentCountAttribute()
+    {
+        return $this->approvedComments()->count();
     }
 }
