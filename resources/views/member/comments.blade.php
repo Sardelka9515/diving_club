@@ -189,14 +189,18 @@
                                                     <button type="button"
                                                         class="btn btn-sm btn-outline-secondary view-comment-btn"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#viewCommentModal-{{ $comment->id }}">
+                                                        data-bs-target="#viewCommentModal-{{ $comment->id }}"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="查看評論">
                                                         <i class="bi bi-eye"></i>
                                                     </button>
 
                                                     <button type="button"
                                                         class="btn btn-sm btn-outline-primary edit-comment-btn"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#editCommentModal-{{ $comment->id }}">
+                                                        data-bs-target="#editCommentModal-{{ $comment->id }}"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="編輯評論">
                                                         <i class="bi bi-pencil"></i>
                                                     </button>
 
@@ -205,7 +209,11 @@
                                                         @csrf
                                                         @method('PATCH')
                                                         <button type="submit"
-                                                            class="btn btn-sm {{ $comment->is_visible ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                                                            class="btn btn-sm {{ $comment->is_visible ? 'btn-outline-warning' : 'btn-outline-success' }}"
+                                                            data-bs-toggle="tooltip"
+                                                            data-bs-placement="top"
+                                                            title="{{ $comment->is_visible ? '隱藏評論' : '顯示評論' }}">
+                                                            {{ $comment->is_visible ? '隱藏' : '顯示' }}
                                                             <i
                                                                 class="bi {{ $comment->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i>
                                                         </button>
@@ -213,7 +221,9 @@
 
                                                     <button type="button" class="btn btn-sm btn-outline-danger"
                                                         data-bs-toggle="modal"
-                                                        data-bs-target="#deleteCommentModal-{{ $comment->id }}">
+                                                        data-bs-target="#deleteCommentModal-{{ $comment->id }}"
+                                                        data-bs-toggle="tooltip"
+                                                        data-bs-placement="top" title="刪除評論">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
