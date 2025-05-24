@@ -2,34 +2,6 @@
 
 @section('title', '首頁')
 
-@section('styles')
-<style>
-    .calendar-table {
-        table-layout: fixed;
-    }
-    
-    .calendar-day {
-        height: 100px;
-        vertical-align: top;
-        padding: 5px;
-    }
-    
-    .date-header {
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
-    
-    .calendar-event {
-        margin-bottom: 3px;
-    }
-    
-    .calendar-event a {
-        font-size: 0.8rem;
-        display: block;
-        text-decoration: none;
-    }
-</style>
-@endsection
 
 @section('content')
 <div class="jumbotron bg-light p-5 mb-4 rounded">
@@ -47,20 +19,101 @@
     </div>
 </div>
 
+<style>
+    .table-fixed {
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    /* 新增日曆卡片背景圖片樣式 */
+    .calendar-card {
+        background-image: url('{{ asset('images/beach.jpg') }}');
+        background-size: cover;
+        background-position: center;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .calendar-card .card-body {
+        background-color: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(1px);
+        padding: 20px;
+    }
+
+    .calendar-table th, .calendar-table td {
+        background-color: transparent !important;
+    }
+
+    /* 非當月的日期欄位完全透明且不顯示日期數字 */
+    .calendar-day.text-muted {
+        background-color: transparent !important;
+        color: transparent !important; /* 隱藏文字 */
+        pointer-events: none; /* 禁止互動 */
+    }
+
+    /* 當月的日期欄位透明化 */
+    .calendar-day {
+        background-color: rgba(255, 255, 255, 0.3); /* 半透明背景 */
+        height: 90px; /* 保持原有高度 */
+        padding: 4px;
+        transition: transform 0.2s, background-color 0.2s;
+    }
+
+    /* 當月日期的 hover 效果 */
+    .calendar-day:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    /* 當天日期的樣式 */
+    .calendar-day.bg-light {
+        background-color: rgba(200, 200, 200, 0.85) !important; /* 灰色背景 */
+    }
+
+    .calendar-events {
+        margin-top: 5px;
+    }
+
+    .calendar-event .badge {
+        white-space: normal;
+        line-height: 1.2;
+        font-size: 0.75rem;
+        display: block;
+        transition: all 0.2s;
+    }
+
+    .calendar-event .badge:hover {
+        transform: translateY(-1px);
+    }
+
+    .date-header {
+        text-align: right;
+        padding-right: 5px;
+    }
+</style>
+
 <div class="container">
-    <!-- 活動日曆 -->
     <div class="row mb-5">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>本月活動日曆</h2>
-                <div>
-                    <span class="fs-5">{{ $currentMonth->format('Y年m月') }}</span>
+                <h2>每月活動行事曆</h2>
+                <div class="d-flex align-items-center">
+                    <a href="{{ route('home', ['year' => $prevMonth->year, 'month' => $prevMonth->month]) }}" class="btn btn-outline-primary btn-sm me-2">
+                        <i class="bi bi-chevron-left"></i> 上個月
+                    </a>
+                    <span class="fs-5 mx-2">{{ $currentMonth->format('Y年m月') }}</span>
+                    <a href="{{ route('home', ['year' => $nextMonth->year, 'month' => $nextMonth->month]) }}" class="btn btn-outline-primary btn-sm ms-2">
+                        下個月 <i class="bi bi-chevron-right"></i>
+                    </a>
+                    <a href="{{ route('home') }}" class="btn btn-outline-secondary btn-sm ms-2">
+                        <i class="bi bi-calendar-event"></i> 今天
+                    </a>
                 </div>
             </div>
-            
-            <div class="card">
+
+            <div class="card calendar-card">
                 <div class="card-body">
-                    <table class="table table-bordered calendar-table">
+                    <table class="table table-bordered calendar-table table-fixed">
                         <thead>
                             <tr class="text-center">
                                 <th>週日</th>
@@ -76,33 +129,40 @@
                             @php
                                 $day = $startOfCalendar->copy();
                             @endphp
-                            
+
                             @while ($day <= $endOfCalendar)
                                 @if ($day->dayOfWeek === 0)
                                     <tr>
                                 @endif
-                                
-                                <td class="calendar-day {{ $day->month !== $currentMonth->month ? 'text-muted' : '' }} 
-                                           {{ $day->isToday() ? 'bg-light' : '' }}">
-                                    <div class="date-header">{{ $day->day }}</div>
-                                    
-                                    @if(isset($calendarActivities[$day->format('Y-m-d')]))
-                                        <div class="calendar-events">
+
+                                <td class="calendar-day {{ $day->month !== $currentMonth->month ? 'text-muted' : '' }} {{ $day->isToday() ? 'bg-light' : '' }}">
+                                    <div class="date-header fw-bold">{{ $day->day }}</div>
+
+                                    <div class="calendar-events">
+                                        @if(isset($calendarActivities[$day->format('Y-m-d')]))
                                             @foreach($calendarActivities[$day->format('Y-m-d')] as $activity)
                                                 <div class="calendar-event">
-                                                    <a href="{{ route('activities.show', $activity) }}" class="badge bg-primary text-truncate d-block">
-                                                        {{ Str::limit($activity->title, 15) }}
+                                                    <a href="{{ route('activities.show', $activity) }}" class="badge bg-primary w-100">
+                                                        {{ $activity->title }}
                                                     </a>
                                                 </div>
                                             @endforeach
-                                        </div>
-                                    @endif
+                                        @else
+                                            <!-- 填充空白活動區，保持一致的高度 -->
+                                            <div class="calendar-event">
+                                                <span class="empty-event">&nbsp;</span>
+                                            </div>
+                                            <div class="calendar-event">
+                                                <span class="empty-event">&nbsp;</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </td>
-                                
+
                                 @if ($day->dayOfWeek === 6)
                                     </tr>
                                 @endif
-                                
+
                                 @php
                                     $day->addDay();
                                 @endphp
@@ -113,6 +173,8 @@
             </div>
         </div>
     </div>
+</div>
+
 
     <!-- 最新活動 -->
     <div class="row mb-5">
@@ -223,4 +285,69 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 獲取 DOM 元素
+    const calendarContainer = document.getElementById('calendar-container');
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+    const todayBtn = document.getElementById('today-btn');
+    const currentMonthDisplay = document.getElementById('current-month-display');
+    
+    // 異步獲取日曆數據
+    function loadCalendar(year, month) {
+        // 顯示載入中提示
+        calendarContainer.innerHTML = '<div class="loader"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">載入中...</p></div>';
+        
+        // 發送 AJAX 請求
+        fetch(`/calendar-data?year=${year}&month=${month}`)
+            .then(response => response.json())
+            .then(data => {
+                // 更新日曆 HTML
+                calendarContainer.innerHTML = data.html;
+                
+                // 更新月份顯示
+                currentMonthDisplay.textContent = data.currentMonth;
+                
+                // 更新按鈕數據屬性
+                prevMonthBtn.dataset.year = data.prevMonth.year;
+                prevMonthBtn.dataset.month = data.prevMonth.month;
+                nextMonthBtn.dataset.year = data.nextMonth.year;
+                nextMonthBtn.dataset.month = data.nextMonth.month;
+                
+                // 更新 URL 而不刷新頁面
+                const url = new URL(window.location);
+                url.searchParams.set('year', year);
+                url.searchParams.set('month', month);
+                window.history.pushState({}, '', url);
+            })
+            .catch(error => {
+                console.error('載入日曆資料時發生錯誤:', error);
+                calendarContainer.innerHTML = '<div class="alert alert-danger">載入日曆時發生錯誤，請重新整理頁面。</div>';
+            });
+    }
+    
+    // 綁定按鈕事件
+    if(prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', function() {
+            loadCalendar(this.dataset.year, this.dataset.month);
+        });
+    }
+    
+    if(nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', function() {
+            loadCalendar(this.dataset.year, this.dataset.month);
+        });
+    }
+    
+    if(todayBtn) {
+        todayBtn.addEventListener('click', function() {
+            loadCalendar(this.dataset.year, this.dataset.month);
+        });
+    }
+});
+</script>
 @endsection

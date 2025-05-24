@@ -1,8 +1,5 @@
+// import Alpine from 'alpinejs';
 import './bootstrap';
-
-import Alpine from 'alpinejs';
-import './bootstrap';
-import * as bootstrap from 'bootstrap';
 window.bootstrap = bootstrap;
 
 // 初始化所有下拉選單

@@ -164,6 +164,10 @@
                                 class="list-group-item list-group-item-action {{ request()->routeIs('admin.comments.*') ? 'active' : '' }}">
                                 <i class="bi bi-chat-dots"></i> 評論管理
                             </a>
+                            <a href="{{ route('admin.reports.index') }}"
+                                class="list-group-item list-group-item-action {{ request()->routeIs('admin.reports.*') ? 'active' : '' }}">
+                                <i class="bi bi-exclamation-triangle"></i> 舉報管理
+                            </a>
                             <a href="{{ route('admin.announcements.index') }}"
                                 class="list-group-item list-group-item-action {{ request()->routeIs('admin.announcements.*') ? 'active' : '' }}">
                                 <i class="bi bi-megaphone"></i> 公告管理
@@ -223,7 +227,8 @@
                 @if (session('info'))
                     <div class="alert alert-info alert-dismissible fade show">
                         {{ session('info') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"
+                            aria-label="Close"></button>
                     </div>
                 @endif
 
@@ -252,7 +257,7 @@
             var sidebarToggles = [].slice.call(document.querySelectorAll('[data-bs-toggle="collapse"]'));
             sidebarToggles.map(function(toggle) {
                 return new bootstrap.Collapse(document.querySelector(toggle.getAttribute(
-                'data-bs-target')), {
+                    'data-bs-target')), {
                     toggle: false
                 });
             });

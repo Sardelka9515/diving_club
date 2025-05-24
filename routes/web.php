@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CommentController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -34,6 +35,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/comments', [CommentController::class, 'memberComments'])->name('member.comments');
 });
 
 // 活動相關
@@ -56,6 +58,9 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update');
     Route::delete('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/reply', [App\Http\Controllers\CommentController::class, 'reply'])->name('comments.reply');
+    Route::post('/comments/{comment}/report', [App\Http\Controllers\CommentController::class, 'report'])->name('comments.report');
+    Route::patch('/comments/{comment}/toggle-visibility', [App\Http\Controllers\CommentController::class, 'toggleVisibility'])
+        ->name('comments.toggle-visibility');
 });
 
 // 管理員後台路由 - 根據角色分配權限
@@ -82,6 +87,19 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
         Route::delete('/comments/{comment}', [App\Http\Controllers\Admin\CommentController::class, 'destroy'])->name('comments.destroy');
         Route::patch('/comments/{comment}/approve', [App\Http\Controllers\Admin\CommentController::class, 'approve'])->name('comments.approve');
         Route::patch('/comments/{comment}/reject', [App\Http\Controllers\Admin\CommentController::class, 'reject'])->name('comments.reject');
+        Route::get('/comments/reported', [App\Http\Controllers\Admin\CommentController::class, 'reported'])->name('comments.reported');
+        Route::patch('/comments/{comment}/toggle-visibility', [App\Http\Controllers\Admin\CommentController::class, 'toggleVisibility'])
+            ->name('comments.toggle-visibility');
+        Route::patch('/comments/{comment}/clear-reported', [App\Http\Controllers\Admin\CommentController::class, 'clearReported'])
+            ->name('comments.clear-reported');
+    });
+
+    Route::middleware(['auth', 'role:admin,super'])->group(function () {
+        Route::get('/reports', [App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+        Route::patch('/reports/{report}/resolve', [App\Http\Controllers\Admin\ReportController::class, 'resolve'])->name('reports.resolve');
+        Route::patch('/reports/{report}/reject', [App\Http\Controllers\Admin\ReportController::class, 'reject'])->name('reports.reject');
+        Route::patch('/reports/{report}/reopen', [App\Http\Controllers\Admin\ReportController::class, 'reopen'])
+            ->name('reports.reopen');
     });
 
     // 超級管理員專用功能

@@ -15,9 +15,11 @@ class Comment extends Model
         'user_id',
         'activity_id',
         'parent_id',
-        'status'
+        'status',
+        'is_visible',
+        'is_reported'
     ];
-    
+
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -38,6 +40,11 @@ class Comment extends Model
         return $this->belongsTo(Comment::class, 'parent_id');
     }
 
+    public function reports()
+    {
+        return $this->hasMany(Report::class);
+    }
+
     public function scopeApproved($query)
     {
         return $query->where('status', 'approved');
@@ -48,8 +55,19 @@ class Comment extends Model
         return $query->where('status', 'pending');
     }
 
-    public function scopeRejected($query)
+    // 新增範圍查詢方法
+    public function scopeVisible($query)
     {
-        return $query->where('status', 'rejected');
+        return $query->where('is_visible', true);
+    }
+
+    public function scopeHidden($query)
+    {
+        return $query->where('is_visible', false);
+    }
+
+    public function scopeReported($query)
+    {
+        return $query->where('is_reported', true);
     }
 }

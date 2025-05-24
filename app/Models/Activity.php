@@ -9,8 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class Activity extends Model
 {
     use HasFactory;
-    
-=======
+
     // 在 Activity 模型中確保有以下關聯和可變屬性
     protected $fillable = [
         'title',
@@ -79,7 +78,6 @@ class Activity extends Model
         ];
     }
 }
-=======
     public function comments()
     {
         return $this->hasMany(Comment::class);
