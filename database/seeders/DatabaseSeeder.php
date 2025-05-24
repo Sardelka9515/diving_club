@@ -70,11 +70,11 @@ class DatabaseSeeder extends Seeder
 
         $user = User::firstOrCreate([
             'name' => 'Sardelka',
-            'email' => 'user@test.io',
+            'email' => 'sardelka9515@gmail.com',
             'password' => Hash::make('password'),
         ]);
 
-        $userRole = Role::where('slug', 'user')->first();
+        $userRole = Role::where('slug', 'super')->first();
         $user->roles()->attach($userRole);
 
         // 創建活動分類
