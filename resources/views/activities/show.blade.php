@@ -142,8 +142,20 @@
             <!-- Registration Sidebar -->
             <div class="col-lg-4">
                 @php
-                    $now = \Carbon\Carbon::now();
-                    $canRegister = $now->between($activity->registration_start, $activity->registration_end);
+                    // 1. 設定一致的時區常量
+                    $APP_TIMEZONE = config('app.timezone');
+
+                    // 2. 設置當前時間並確保時區一致
+                    $now = \Carbon\Carbon::now()->setTimezone($APP_TIMEZONE);
+
+                    // 3. 轉換所有活動時間到同一時區
+                    $activityStart = $activity->start_date->setTimezone($APP_TIMEZONE);
+                    $activityEnd = $activity->end_date->setTimezone($APP_TIMEZONE);
+                    $registrationStart = $activity->registration_start->setTimezone($APP_TIMEZONE);
+                    $registrationEnd = $activity->registration_end->setTimezone($APP_TIMEZONE);
+
+                    // 4. 更新判斷邏輯，使用統一時區的時間對象
+                    $canRegister = $now->between($registrationStart, $registrationEnd);
                     $registrationCount = $activity->registrations()->count();
                     $isFull = $activity->max_participants > 0 && $registrationCount >= $activity->max_participants;
                     $userRegistered = auth()->check()
@@ -153,17 +165,58 @@
                             ->exists()
                         : false;
 
-                    // Activity status
+                    // 5. 活動狀態判斷
                     $status = 'open';
                     if ($isFull) {
                         $status = 'full';
                     }
-                    if (!$canRegister && $now->isAfter($activity->end_date)) {
+                    if (!$canRegister && $now->isAfter($activityEnd)) {
                         $status = 'completed';
-                    } elseif (!$canRegister && $now->isBefore($activity->registration_start)) {
+                    } elseif (!$canRegister && $now->isBefore($registrationStart)) {
                         $status = 'upcoming';
-                    } elseif (!$canRegister && $now->isAfter($activity->registration_end)) {
+                    } elseif (!$canRegister && $now->isAfter($registrationEnd)) {
                         $status = 'closed';
+                    }
+
+                    // 6. 時間差格式化函數
+                    function formatDiff($diff)
+                    {
+                        $parts = [];
+                        if ($diff->m) {
+                            $parts[] = "{$diff->m} 個月";
+                        }
+                        if ($diff->d) {
+                            $parts[] = "{$diff->d} 天";
+                        }
+                        if ($diff->h > 0 || $diff->d > 0 || $diff->m > 0) {
+                            $parts[] = "{$diff->h} 小時";
+                        }
+                        if ($diff->i > 0 || $diff->h > 0 || $diff->d > 0 || $diff->m > 0) {
+                            $parts[] = "{$diff->i} 分鐘";
+                        }
+                        if (empty($parts) || count($parts) === 0) {
+                            $parts[] = "{$diff->s} 秒";
+                        }
+                        return implode(' ', $parts);
+                    }
+
+                    // 7. 計算時間差並生成提示訊息
+                    if ($now->lt($registrationStart)) {
+                        $diff = $now->diff($registrationStart);
+                        $message = '還有 ' . formatDiff($diff) . ' 開放報名';
+                    } elseif ($now->lt($registrationEnd)) {
+                        $diff = $now->diff($registrationEnd);
+                        $message = '剩餘 ' . formatDiff($diff) . ' 截止報名';
+
+                        // 處理即將截止的情況
+                        $totalSeconds = $diff->days * 86400 + $diff->h * 3600 + $diff->i * 60 + $diff->s;
+                        if ($totalSeconds < 300) {
+                            // 少於5分鐘
+                            $message =
+                                '<span class="text-danger fw-bold">即將截止！剩餘 ' . formatDiff($diff) . '</span>';
+                        }
+                    } else {
+                        $message = '';
                     }
                 @endphp
 
@@ -192,34 +245,15 @@
                                     <i class="bi bi-check-circle me-1"></i> 活動已結束
                                 @endif
                             </span>
-                            @php
-                                function formatDiff($diff)
-                                {
-                                    $parts = [];
-                                    if ($diff->d > 0) {
-                                        $parts[] = "{$diff->d} 天";
-                                    }
-                                    if ($diff->h > 0) {
-                                        $parts[] = "{$diff->h} 小時";
-                                    }
-                                    if ($diff->i > 0) {
-                                        $parts[] = "{$diff->i} 分鐘";
-                                    }
-                                    return implode(' ', $parts);
-                                }
-
-                                if ($now->lt($activity->registration_start)) {
-                                    $diff = $now->diff($activity->registration_start);
-                                    $message = '還有 ' . formatDiff($diff) . ' 開放報名';
-                                } elseif ($now->lt($activity->registration_end)) {
-                                    $diff = $now->diff($activity->registration_end);
-                                    $message = '剩餘 ' . formatDiff($diff) . ' 截止報名';
-                                } else {
-                                    $message = '';
-                                }
-                            @endphp
+                            {{-- <div>
+                                {{ $diff }}
+                                {{ $diff->days > 0 ? $diff->days . ' 天' : '' }}
+                                {{ $diff->h > 0 ? $diff->h . ' 小時' : '' }}
+                                {{ $diff->i > 0 ? $diff->i . ' 分鐘' : '' }}
+                                {{ $diff->s > 0 ? $diff->s . ' 秒' : '' }}
+                            </div> --}}
                             <span class="text-muted small text-center">
-                                {{ $message ? $message : '活動已結束' }}
+                                {!! $message ? $message : '活動已結束' !!}
                             </span>
                         </div>
 
@@ -371,7 +405,7 @@
                                     <textarea class="form-control ocean-form @error('content') is-invalid @enderror" id="content" name="content"
                                         rows="3" placeholder="分享您對此活動的看法或問題..."></textarea>
                                     @error('content')
-                                        <div class="invalid-feedback">{{ $message }}</div>
+                                        <div class="invalid-feedback">Invalid feedback</div>
                                     @enderror
                                 </div>
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">

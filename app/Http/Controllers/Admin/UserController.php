@@ -79,15 +79,37 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if($user->id === auth()->id()) {
+        if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')
                 ->with('error', '無法刪除當前登入的用戶');
         }
-        
+
         $user->roles()->detach();
         $user->delete();
 
         return redirect()->route('admin.users.index')
             ->with('success', '用戶已成功刪除');
+    }
+
+    /**
+     * 搜索用戶
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function search(Request $request)
+    {
+        $term = $request->term;
+
+        if (strlen($term) < 2) {
+            return response()->json([]);
+        }
+
+        $users = \App\Models\User::where('name', 'like', "%{$term}%")
+            ->orWhere('email', 'like', "%{$term}%")
+            ->take(10)
+            ->get(['id', 'name', 'email']);
+
+        return response()->json($users);
     }
 }
