@@ -77,7 +77,6 @@ class Activity extends Model
             'description' => $this->description,
         ];
     }
-}
     public function comments()
     {
         return $this->hasMany(Comment::class);
