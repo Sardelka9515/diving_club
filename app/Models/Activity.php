@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+
 class Activity extends Model
 {
     use HasFactory;
@@ -67,6 +68,16 @@ class Activity extends Model
         return $now->between($this->registration_start, $this->registration_end);
     }
 
+    // 搜尋的資料
+    public function toSearchableArray()
+    {
+        return [
+            'title' => $this->title,
+            'content' => $this->content,
+            'description' => $this->description,
+        ];
+    }
+}
     public function comments()
     {
         return $this->hasMany(Comment::class);
