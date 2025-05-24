@@ -244,7 +244,7 @@
     </footer>
 
     <!-- Bootstrap JS -->
-    // 在 resources/views/admin/layouts/app.blade.php 中添加以下 JavaScript 初始化代碼
+    {{-- // 在 resources/views/admin/layouts/app.blade.php 中添加以下 JavaScript 初始化代碼 --}}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // 初始化所有下拉選單

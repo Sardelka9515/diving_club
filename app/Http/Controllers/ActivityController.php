@@ -3,9 +3,11 @@
 // app/Http/Controllers/ActivityController.php
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use App\Models\Activity;
 use App\Models\ActivityCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ActivityController extends Controller
 {
@@ -65,7 +67,7 @@ class ActivityController extends Controller
         try {
             // 建立報名紀錄
             $activity->registrations()->create([
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'status' => 'pending',
             ]);
 
