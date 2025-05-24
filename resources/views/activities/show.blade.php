@@ -178,7 +178,7 @@
                     </div>
                     <div class="card-body p-4">
                         <!-- Registration status badge -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3 gap-4">
                             <span class="badge status-badge status-{{ $status }} rounded-pill px-3 py-2">
                                 @if ($status == 'open')
                                     <i class="bi bi-unlock me-1"></i> 開放報名中
@@ -192,12 +192,34 @@
                                     <i class="bi bi-check-circle me-1"></i> 活動已結束
                                 @endif
                             </span>
-                            <span class="text-muted small">
-                                @if ($now->isBefore($activity->registration_start))
-                                    還有 {{ $now->diffInDays($activity->registration_start) }} 天開放報名
-                                @elseif ($now->isBefore($activity->registration_end))
-                                    剩餘 {{ $now->diffInDays($activity->registration_end) }} 天截止報名
-                                @endif
+                            @php
+                                function formatDiff($diff)
+                                {
+                                    $parts = [];
+                                    if ($diff->d > 0) {
+                                        $parts[] = "{$diff->d} 天";
+                                    }
+                                    if ($diff->h > 0) {
+                                        $parts[] = "{$diff->h} 小時";
+                                    }
+                                    if ($diff->i > 0) {
+                                        $parts[] = "{$diff->i} 分鐘";
+                                    }
+                                    return implode(' ', $parts);
+                                }
+
+                                if ($now->lt($activity->registration_start)) {
+                                    $diff = $now->diff($activity->registration_start);
+                                    $message = '還有 ' . formatDiff($diff) . ' 開放報名';
+                                } elseif ($now->lt($activity->registration_end)) {
+                                    $diff = $now->diff($activity->registration_end);
+                                    $message = '剩餘 ' . formatDiff($diff) . ' 截止報名';
+                                } else {
+                                    $message = '';
+                                }
+                            @endphp
+                            <span class="text-muted small text-center">
+                                {{ $message ? $message : '活動已結束' }}
                             </span>
                         </div>
 
@@ -464,19 +486,38 @@
                                                             </form>
                                                         @endcan
 
-                                                        @auth
-                                                            <button class="btn btn-sm btn-light report-btn"
-                                                                data-comment-id="{{ $comment->id }}" data-bs-toggle="modal"
-                                                                data-bs-target="#reportModal-{{ $comment->id }}">
-                                                                <i class="bi bi-flag"></i> 舉報
-                                                            </button>
+                                                        @php
+                                                            $report = $comment
+                                                                ->reports()
+                                                                ->where('user_id', auth()->id())
+                                                                ->first();
+                                                        @endphp
+                                                        @if ($report)
+                                                            <form action="{{ route('comments.unreport', $comment) }}"
+                                                                method="POST" class="d-inline">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <button type="submit" class="btn btn-sm btn-light"
+                                                                    onclick="return confirm('確定要取消舉報此評論嗎？')">
+                                                                    <i class="bi bi-flag-fill"></i> 取消舉報
+                                                                </button>
+                                                            </form>
+                                                        @elseif ($comment->user->id !== auth()->id())
+                                                            @auth
+                                                                <button class="btn btn-sm btn-light report-btn"
+                                                                    data-comment-id="{{ $comment->id }}"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#reportModal-{{ $comment->id }}">
+                                                                    <i class="bi bi-flag"></i> 舉報
+                                                                </button>
 
-                                                            @push('modals')
-                                                                <!-- 舉報彈窗 -->
-                                                                <x-report-modal :comment="$comment" :commentId="$comment->id"
-                                                                    :content="$comment->content" />
-                                                            @endpush
-                                                        @endauth
+                                                                @push('modals')
+                                                                    <!-- 舉報彈窗 -->
+                                                                    <x-report-modal :comment="$comment" :commentId="$comment->id"
+                                                                        :content="$comment->content" />
+                                                                @endpush
+                                                            @endauth
+                                                        @endif
                                                     </div>
                                                 </div>
 
@@ -617,7 +658,8 @@
                                                                                         <button type="submit"
                                                                                             class="btn btn-sm btn-light">
                                                                                             <i
-                                                                                                class="bi {{ $reply->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i> 隱藏
+                                                                                                class="bi {{ $reply->is_visible ? 'bi-eye-slash' : 'bi-eye' }}"></i>
+                                                                                            隱藏
                                                                                         </button>
                                                                                     </form>
                                                                                 @endcan
@@ -636,21 +678,43 @@
                                                                                     </form>
                                                                                 @endcan
 
-                                                                                @auth
-                                                                                    <button
-                                                                                        class="btn btn-sm btn-light report-btn"
-                                                                                        data-comment-id="{{ $reply->id }}"
-                                                                                        data-bs-toggle="modal"
-                                                                                        data-bs-target="#reportModal-{{ $reply->id }}">
-                                                                                        <i class="bi bi-flag"></i> 舉報
-                                                                                    </button>
+                                                                                @php
+                                                                                    $report = $reply
+                                                                                        ->reports()
+                                                                                        ->where('user_id', auth()->id())
+                                                                                        ->first();
+                                                                                @endphp
+                                                                                @if ($report)
+                                                                                    <form
+                                                                                        action="{{ route('comments.unreport', $reply) }}"
+                                                                                        method="POST" class="d-inline">
+                                                                                        @csrf
+                                                                                        @method('DELETE')
+                                                                                        <button type="submit"
+                                                                                            class="btn btn-sm btn-light"
+                                                                                            onclick="return confirm('確定要取消舉報此評論嗎？')">
+                                                                                            <i class="bi bi-flag-fill"></i>
+                                                                                            取消舉報
+                                                                                        </button>
+                                                                                    </form>
+                                                                                @elseif ($reply->user->id !== auth()->id())
+                                                                                    @auth
+                                                                                        <button
+                                                                                            class="btn btn-sm btn-light report-btn"
+                                                                                            data-comment-id="{{ $reply->id }}"
+                                                                                            data-bs-toggle="modal"
+                                                                                            data-bs-target="#reportModal-{{ $reply->id }}">
+                                                                                            <i class="bi bi-flag"></i> 舉報
+                                                                                        </button>
 
-                                                                                    @push('modals')
-                                                                                        <!-- 舉報彈窗 -->
-                                                                                        <x-report-modal :comment="$reply"
-                                                                                            :commentId="$reply->id" :content="$reply->content" />
-                                                                                    @endpush
-                                                                                @endauth
+                                                                                        @push('modals')
+                                                                                            <!-- 舉報彈窗 -->
+                                                                                            <x-report-modal :comment="$reply"
+                                                                                                :commentId="$reply->id"
+                                                                                                :content="$reply->content" />
+                                                                                        @endpush
+                                                                                    @endauth
+                                                                                @endif
                                                                             </div>
 
                                                                             <!-- 回覆的編輯表單 (預設隱藏) -->

@@ -146,6 +146,28 @@ class CommentController extends Controller
         return back()->with('success', '感謝您的舉報，我們會盡快處理');
     }
 
+    public function unreport(Comment $comment)
+    {
+
+        // 檢查是否有舉報記錄
+        $report = Report::where('comment_id', $comment->id)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$report) {
+            return back()->with('error', '您尚未舉報此評論');
+        }
+
+        // 刪除舉報記錄
+        $report->delete();
+
+        // 更新評論的舉報標記
+        $comment->is_reported = false;
+        $comment->save();
+
+        return back()->with('success', '已取消舉報');
+    }
+
     public function toggleVisibility(Comment $comment)
     {
         // 確保只有自己的評論可以切換可見性

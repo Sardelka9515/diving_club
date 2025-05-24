@@ -59,6 +59,8 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
     Route::post('/comments/{comment}/reply', [App\Http\Controllers\CommentController::class, 'reply'])->name('comments.reply');
     Route::post('/comments/{comment}/report', [App\Http\Controllers\CommentController::class, 'report'])->name('comments.report');
+    Route::delete('/comments/{comment}/unreport', [App\Http\Controllers\CommentController::class, 'unreport'])
+        ->name('comments.unreport');
     Route::patch('/comments/{comment}/toggle-visibility', [App\Http\Controllers\CommentController::class, 'toggleVisibility'])
         ->name('comments.toggle-visibility');
 });

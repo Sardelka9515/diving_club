@@ -16,15 +16,6 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
-        // 確保有用戶存在來創建公告
-        $user = User::first();
-        if (!$user) {
-            $user = User::create([
-                'name' => '系統管理員',
-                'email' => 'admin@example.com',
-                'password' => bcrypt('password'),
-            ]);
-        }
 
         $roles = [
             ['name' => '超級管理員', 'slug' => 'super', 'description' => '擁有所有權限的管理員'],
@@ -57,6 +48,31 @@ class DatabaseSeeder extends Seeder
         if (!$superUser->roles()->where('role_id', )->exists()) {
             $superUser->roles()->attach($superRole);
         }
+
+        // 確保有用戶存在來創建公告
+        $admin = User::firstorCreate([
+            'name' => '系統管理員',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password'),
+        ]);
+
+        $userRole = Role::where('slug', 'admin')->first();
+        $admin->roles()->attach($userRole);
+
+        $member = User::firstOrCreate([
+            'name' => 'Oswin',
+            'email' => 'test@test.io',
+            'password' => Hash::make('password'),
+        ]);
+
+        $userRole = Role::where('slug', 'member')->first();
+        $member->roles()->attach($userRole);
+
+        $user = User::firstOrCreate([
+            'name' => 'Sardelka',
+            'email' => 'user@test.io',
+            'password' => Hash::make('password'),
+        ]);
 
         $userRole = Role::where('slug', 'user')->first();
         $user->roles()->attach($userRole);
