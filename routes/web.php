@@ -77,6 +77,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('activities', App\Http\Controllers\Admin\ActivityController::class)
         ->middleware('role:admin,super');
 
+    // 報名管理路由
+    Route::prefix('registrations')->name('registrations.')->group(function () {
+        Route::post('/store', [App\Http\Controllers\Admin\RegistrationController::class, 'store'])->name('store');
+        Route::patch('/{registration}/approve', [App\Http\Controllers\Admin\RegistrationController::class, 'approve'])->name('approve');
+        Route::delete('/{registration}', [App\Http\Controllers\Admin\RegistrationController::class, 'destroy'])->name('destroy'); // 單個刪除
+        Route::patch('/{registration}/cancel', [App\Http\Controllers\Admin\RegistrationController::class, 'cancel'])->name('cancel');
+        Route::post('/bulk-approve', [App\Http\Controllers\Admin\RegistrationController::class, 'bulkApprove'])->name('bulk-approve');
+        Route::delete('/bulk-delete', [App\Http\Controllers\Admin\RegistrationController::class, 'bulkDelete'])->name('bulk-delete'); // 批量刪除
+        Route::post('/export', [App\Http\Controllers\Admin\RegistrationController::class, 'export'])->name('export');
+    });
+    Route::get('/users/search', [App\Http\Controllers\Admin\UserController::class, 'search'])->name('users.search')->middleware('role:admin,super');
+
     // 公告管理 - admin 和 super 可使用  
     Route::resource('announcements', App\Http\Controllers\Admin\AnnouncementController::class)
         ->middleware('role:admin,super');
@@ -128,4 +140,3 @@ Route::post('/search/logs/clear', [SearchController::class, 'clearLogs']);
 Route::get('/announcements/{id}', [AnnouncementController::class, 'show'])->name('announcements.show');
 Route::get('/activities/{id}', [ActivityController::class, 'show'])->name('activities.show');
 Route::get('/search/logs/recent', [SearchController::class, 'recentLogs']);
-
