@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use App\Models\SearchLog;
+use App\Http\Controllers\Auth\PortalBaseProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -46,6 +47,19 @@ class AppServiceProvider extends ServiceProvider
                 $view->with(compact('recentKeywords', 'reserveKeywords'));
             });
         }
+        $this->bootPortalSocialite();
     }
 
+    private function bootPortalSocialite()
+    {
+        $socialite = $this->app->make('Laravel\Socialite\Contracts\Factory');
+    
+        $socialite->extend(
+            'portal',
+             function ($app) use ($socialite) {
+                 $config = $app['config']['ncu.portal'];
+                 return $socialite->buildProvider(PortalBaseProvider::class, $config);
+             }
+        );
+    }
 }

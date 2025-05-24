@@ -28,8 +28,9 @@ class User extends Authenticatable
         'diving_experience',
         'diving_certification',
         'medical_conditions',
+        'ncu_identifier', // Add this
+        'email_verified_at',
     ];
-
     protected $hidden = [
         'password',
         'remember_token',

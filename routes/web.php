@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\Auth\PortalLoginController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\EmailVerificationPromptController;
+use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\EmailVerificationNotificationController;
+
 
 // 首頁路由
 Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
@@ -23,12 +29,37 @@ Route::get('/test-page', function () {
 });
 
 // 身份驗證路由（login, register等）
-require __DIR__ . '/auth.php';
+// require __DIR__ . '/auth.php';
+
+
+// NCU Portal Authentication Routes
+Route::get('login', [PortalLoginController::class, 'redirectToProvider'])->name('login');
+Route::get('callback', [PortalLoginController::class, 'handleProviderCallback']);
+
+// Logout route (can still use Laravel's default for session invalidation)
+Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->middleware('auth')
+    ->name('logout');
+
+Route::get('register', function () {
+    return redirect('https://portal.ncu.edu.tw/signup');
+})->name('register');
+
+Route::get('verify-email', EmailVerificationPromptController::class)
+    ->name('verification.notice');
+
+Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.verify');
+
+Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
+    ->middleware('throttle:6,1')
+    ->name('verification.send');
 
 // 儀表板
 Route::get('/dashboard', function () {
     return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth'])->name('dashboard'); // Removed 'verified' as NCU handles verification implicitly
 
 // 個人資料相關
 Route::middleware('auth')->group(function () {

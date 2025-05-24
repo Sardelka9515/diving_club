@@ -176,50 +176,9 @@
                     <h5 class="card-title mb-0">修改密碼</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{{ route('password.update') }}">
-                        @csrf
-                        @method('put')
-
-                        <div class="mb-3">
-                            <label for="update_password_current_password" class="form-label">目前密碼 <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control @error('current_password', 'updatePassword') is-invalid @enderror" 
-                                   id="update_password_current_password" name="current_password" required autocomplete="current-password">
-                            @error('current_password', 'updatePassword')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="update_password_password" class="form-label">新密碼 <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control @error('password', 'updatePassword') is-invalid @enderror" 
-                                   id="update_password_password" name="password" required autocomplete="new-password">
-                            @error('password', 'updatePassword')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="update_password_password_confirmation" class="form-label">確認新密碼 <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control @error('password_confirmation', 'updatePassword') is-invalid @enderror" 
-                                   id="update_password_password_confirmation" name="password_confirmation" required autocomplete="new-password">
-                            @error('password_confirmation', 'updatePassword')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="d-flex gap-3">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-shield-lock me-1"></i>更新密碼
-                            </button>
-
-                            @if (session('status') === 'password-updated')
-                                <div class="alert alert-success alert-sm d-flex align-items-center mb-0" role="alert">
-                                    <i class="bi bi-check-circle me-2"></i>
-                                    密碼已成功更新
-                                </div>
-                            @endif
-                        </div>
-                    </form>
+                    <p class="text-muted">
+                        請至 <a href="https://portal.ncu.edu.tw/my/profile/password" target="_blank" rel="noopener noreferrer">中央大學 Portal <i class="bi bi-box-arrow-up-right"></i></a> 更改您的密碼。
+                    </p>
                 </div>
             </div>
 
